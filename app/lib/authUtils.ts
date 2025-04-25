@@ -13,19 +13,34 @@ export const moduleAccess = {
 
 // Kullanıcının belirli bir modüle erişimi olup olmadığını kontrol eder
 export const hasModuleAccess = (moduleName: string, userRole: string | null): boolean => {
-  if (!userRole) return false;
+  console.log(`DEBUG - hasModuleAccess called with moduleName: ${moduleName}, userRole: ${userRole}`);
+  
+  if (!userRole) {
+    console.log(`DEBUG - No userRole provided, access denied`);
+    return false;
+  }
   
   // Admin her modüle erişebilir (ekstra kontrol)
-  if (userRole === 'admin') return true;
+  // String olarak tam eşleşme yerine içeriyor mu kontrolü
+  if (userRole.toLowerCase().includes('admin')) {
+    console.log(`DEBUG - User role contains 'admin', access granted`);
+    return true;
+  }
   
   // Modül için izin verilen roller listesi
   const allowedRoles = moduleAccess[moduleName as keyof typeof moduleAccess];
+  console.log(`DEBUG - Allowed roles for module ${moduleName}:`, allowedRoles);
   
   // Eğer modül tanımlanmamışsa erişimi reddet
-  if (!allowedRoles) return false;
+  if (!allowedRoles) {
+    console.log(`DEBUG - Module ${moduleName} not defined in moduleAccess, access denied`);
+    return false;
+  }
   
   // Kullanıcının rolü izin verilen roller listesinde mi kontrol et
-  return allowedRoles.includes(userRole);
+  const hasAccess = allowedRoles.some(role => userRole.toLowerCase().includes(role.toLowerCase()));
+  console.log(`DEBUG - User with role ${userRole} access to module ${moduleName}: ${hasAccess}`);
+  return hasAccess;
 };
 
 // Kullanıcının o anki rolünü localStorage'dan alır

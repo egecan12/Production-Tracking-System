@@ -35,12 +35,16 @@ export default function SystemLoginPage() {
 
         // Save user role
         if (data.userData && data.userData.role) {
+          console.log("DEBUG - Login successful, saving user role:", data.userData.role);
           localStorage.setItem("userRole", data.userData.role);
+        } else {
+          console.log("DEBUG - Login successful but no role data received:", data.userData);
         }
 
         // Redirect to home page
         router.push("/");
       } else {
+        console.log("DEBUG - Login failed:", data);
         setError(data.message || t("Giriş işlemi başarısız oldu."));
       }
     } catch (err) {

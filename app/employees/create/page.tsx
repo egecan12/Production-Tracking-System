@@ -50,7 +50,18 @@ export default function CreateEmployeePage() {
         ])
         .select();
 
-      if (supabaseError) throw supabaseError;
+      if (supabaseError) {
+        console.error("Supabase error:", supabaseError);
+        
+        // RLS hatası için özel mesaj
+        if (supabaseError.code === '42501' && supabaseError.message?.includes('row-level security policy')) {
+          throw new Error(
+            "Veritabanı güvenlik politikası nedeniyle çalışan eklenemedi. Bu işlem için yönetici yetkileri gerekiyor. Veritabanı yöneticinizle iletişime geçin veya Supabase konsolunda RLS politikalarını düzenleyin."
+          );
+        }
+        
+        throw supabaseError;
+      }
 
       setSuccess("Çalışan başarıyla eklendi!");
       setEmployee({

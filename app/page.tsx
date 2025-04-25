@@ -66,6 +66,9 @@ export default function Home() {
     if (typeof window !== "undefined") {
       const storedUsername = localStorage.getItem("username");
       const storedRole = localStorage.getItem("userRole");
+      
+      console.log("DEBUG - Stored username:", storedUsername);
+      console.log("DEBUG - Stored role:", storedRole);
 
       if (storedUsername) {
         setUsername(storedUsername);
@@ -75,11 +78,16 @@ export default function Home() {
         setRole(storedRole); // Role state is required for module access
 
         // Filter modules that the user has access to
-        const filteredModules = modules.filter((module) =>
-          hasModuleAccess(module.id, storedRole)
-        );
+        const filteredModules = modules.filter((module) => {
+          const hasAccess = hasModuleAccess(module.id, storedRole);
+          console.log(`DEBUG - Module ${module.id} access:`, hasAccess);
+          return hasAccess;
+        });
 
+        console.log("DEBUG - Accessible modules:", filteredModules);
         setAccessibleModules(filteredModules);
+      } else {
+        console.log("DEBUG - No user role found in localStorage");
       }
     }
   }, []);
