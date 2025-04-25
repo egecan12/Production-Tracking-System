@@ -67,3 +67,77 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 [MIT](LICENSE)
+
+## Veri Erişim Servisi (Data Service)
+
+Proje, veri tabanı erişimi için merkezi bir servis kullanmaktadır. Bu, Row Level Security (RLS) politikalarını güvenli bir şekilde yönetmeyi sağlar.
+
+### API Kullanımı
+
+Veritabanı işlemleri için merkezi API endpoint'i:
+
+```typescript
+// Çalışan bilgilerini çekmek
+import { getData } from "./lib/dataService";
+
+// Tüm çalışanları getir
+const employees = await getData('employees');
+
+// Belirli filtrelere göre çalışanları getir
+const activeEmployees = await getData('employees', { status: 'active' });
+
+// Yeni çalışan ekle
+import { createData } from "./lib/dataService";
+
+await createData('employees', {
+  name: 'Ahmet Yılmaz',
+  email: 'ahmet@example.com',
+  phone: '5551234567'
+});
+
+// Çalışan bilgilerini güncelle
+import { updateData } from "./lib/dataService";
+
+await updateData('employees', 
+  { name: 'Ahmet Yılmaz (Üretim)' }, // Güncellenecek veriler
+  { id: '123e4567-e89b-12d3-a456-426614174000' } // Filtreler
+);
+
+// Çalışan sil
+import { deleteData } from "./lib/dataService";
+
+await deleteData('employees', { id: '123e4567-e89b-12d3-a456-426614174000' });
+```
+
+### Supabase Row Level Security (RLS)
+
+Bu proje Supabase veritabanı kullanmaktadır ve güvenlik için Row Level Security (RLS) politikalarını destekler.
+
+RLS politikaları aktif olduğunda, client tarafından doğrudan veritabanına erişim kısıtlanır. Bu durumda iki seçenek vardır:
+
+1. **API üzerinden erişim (Önerilen)**: Bu projede kullanılan yöntem budur. Sunucu tarafında çalışan API endpoint'leri, service role key kullanarak RLS kısıtlamalarını güvenli bir şekilde aşar.
+
+2. **RLS Politikaları Yapılandırma**: Supabase konsolundan direkt erişim için RLS politikalarını ayarlanabilir.
+
+#### RLS Politikalarını Etkinleştirme/Düzenleme
+
+Supabase konsolunda RLS politikalarını yönetmek için:
+
+1. [Supabase Dashboard](https://app.supabase.io/)'a giriş yapın
+2. Projenizi seçin
+3. Sol menüden "Authentication" > "Policies" seçin
+4. İlgili tabloyu bulun ve politikalarını düzenleyin
+
+Örnek RLS politikası:
+
+```sql
+-- Sadece giriş yapmış kullanıcılar kendi verilerini görebilir
+CREATE POLICY "Users can view own data" ON employees
+  FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- Sadece admin rolüne sahip kullanıcılar yeni kayıt ekleyebilir
+CREATE POLICY "Only admins can insert" ON employees
+  FOR INSERT
+  WITH CHECK (auth.jwt() ->> 'role' = 'admin');
+```

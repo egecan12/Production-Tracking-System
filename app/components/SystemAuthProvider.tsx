@@ -7,53 +7,65 @@ interface SystemAuthProviderProps {
   children: React.ReactNode;
 }
 
+// Giriş gerektirmeyen sayfalar (beyaz liste)
+const PUBLIC_PATHS = [
+  '/auth/system-login'
+];
+
 export default function SystemAuthProvider({
   children,
 }: SystemAuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    // LocalStorage'a tarayıcı tarafında erişim sağla
+    // Tarayıcı tarafında çalıştırılacak
     if (typeof window !== "undefined") {
-      // Eğer sayfanın yeniden yüklenmesi durumunda giriş durumunu localStorage'dan kontrol et
+      // Token kontrolü (systemAuth)
       const authStatus = localStorage.getItem("systemAuth") === "true";
       setIsAuthenticated(authStatus);
 
-      // Eğer giriş yapmamışsa ve giriş sayfasında değilse, giriş sayfasına yönlendir
-      if (!authStatus && pathname !== "/auth/system-login") {
-        // setTimeout kullanarak React render döngüsünün dışında çalıştırıyoruz
-        setTimeout(() => {
-          router.push("/auth/system-login");
-        }, 0);
+      // Şu anki sayfa giriş gerektirmeyen bir sayfa mı kontrol et
+      const isPublicPath = PUBLIC_PATHS.includes(pathname) || 
+                         PUBLIC_PATHS.some(path => pathname.startsWith(path));
+
+      // Eğer token yoksa ve korumalı bir sayfaya erişmeye çalışıyorsa giriş sayfasına yönlendir
+      if (!authStatus && !isPublicPath) {
+        console.log("Auth required, redirecting to login page");
+        router.push('/auth/system-login');
       }
 
-      // Eğer kullanıcı giriş sayfasındaysa ve zaten giriş yapmışsa, ana sayfaya yönlendir
-      if (authStatus && pathname === "/auth/system-login") {
-        // setTimeout kullanarak React render döngüsünün dışında çalıştırıyoruz
-        setTimeout(() => {
-          router.push("/");
-        }, 0);
+      // Eğer token varsa ve giriş sayfasındaysa ana sayfaya yönlendir
+      if (authStatus && pathname === '/auth/system-login') {
+        console.log("Already authenticated, redirecting to homepage");
+        router.push('/');
       }
+
+      setIsLoading(false);
     }
   }, [pathname, router]);
 
-  // İlk yüklemede henüz localStorage kontrolü yapılmamışsa, içeriği gösterme
-  if (isAuthenticated === null) {
-    return null;
+  // Yükleme esnasında bir gösterge göster (opsiyonel)
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-gray-400">Yükleniyor...</div>
+      </div>
+    );
   }
 
-  // Eğer kullanıcı giriş sayfasındaysa ve giriş yapmamışsa, giriş sayfasını göster
-  if (!isAuthenticated && pathname === "/auth/system-login") {
+  // Auth gerektirmeyen sayfa ise (giriş sayfası gibi) direkt içeriği göster
+  if (PUBLIC_PATHS.includes(pathname) || PUBLIC_PATHS.some(path => pathname.startsWith(path))) {
     return <>{children}</>;
   }
 
-  // Eğer kullanıcı giriş yapmışsa, normal içeriği göster
+  // Auth gerektiren sayfalar için, token varsa içeriği göster
   if (isAuthenticated) {
     return <>{children}</>;
   }
 
-  // Diğer durumlarda (giriş yapmamış ve giriş sayfasında değil), içeriği gösterme
+  // Bu noktaya gelindiyse, muhtemelen giriş sayfasına yönlendirme yapılıyor
   return null;
 }

@@ -12,18 +12,39 @@ export default function LogoutButton() {
     setIsLoggingOut(true);
     
     try {
-      // Clear authentication data from localStorage
+      // API'ye logout isteği gönder
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      // Clear all authentication data from localStorage
       if (typeof window !== "undefined") {
+        // Sistem auth token'ı
+        localStorage.removeItem("systemAuth");
+        
+        // Diğer kullanıcı bilgileri
         localStorage.removeItem("token");
         localStorage.removeItem("username");
         localStorage.removeItem("userRole");
         localStorage.removeItem("userId");
+        
+        console.log("Logged out, all auth tokens cleared");
       }
       
-      // Redirect to login page
-      router.push("/auth/login");
+      // Sistem giriş sayfasına yönlendir
+      router.push("/auth/system-login");
     } catch (error) {
       console.error("Logout error:", error);
+      
+      // Hata olsa bile her durumda token'ları temizle ve giriş sayfasına yönlendir
+      localStorage.removeItem("systemAuth");
+      localStorage.removeItem("username");
+      localStorage.removeItem("userRole");
+      
+      router.push("/auth/system-login");
     } finally {
       setIsLoggingOut(false);
     }
@@ -36,7 +57,7 @@ export default function LogoutButton() {
       className="px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
       style={{ cursor: "pointer" }}
     >
-      {isLoggingOut ? "..." : "Logout"}
+      {isLoggingOut ? t("Çıkış yapılıyor...") : t("Çıkış")}
     </button>
   );
 }

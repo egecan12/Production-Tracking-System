@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import Link from "next/link";
 import type { Employee } from "../../types";
+import { createData } from "../../lib/dataService";
 
 export default function CreateEmployeePage() {
   const router = useRouter();
@@ -38,30 +39,12 @@ export default function CreateEmployeePage() {
         throw new Error("İsim ve email alanları zorunludur.");
       }
 
-      // Çalışan ekle
-      const { error: supabaseError } = await supabase
-        .from("employees")
-        .insert([
-          {
-            name: employee.name,
-            email: employee.email,
-            phone: employee.phone || null,
-          },
-        ])
-        .select();
-
-      if (supabaseError) {
-        console.error("Supabase error:", supabaseError);
-        
-        // RLS hatası için özel mesaj
-        if (supabaseError.code === '42501' && supabaseError.message?.includes('row-level security policy')) {
-          throw new Error(
-            "Veritabanı güvenlik politikası nedeniyle çalışan eklenemedi. Bu işlem için yönetici yetkileri gerekiyor. Veritabanı yöneticinizle iletişime geçin veya Supabase konsolunda RLS politikalarını düzenleyin."
-          );
-        }
-        
-        throw supabaseError;
-      }
+      // Yeni veri servisi ile çalışan ekle
+      await createData('employees', {
+        name: employee.name,
+        email: employee.email,
+        phone: employee.phone || null,
+      });
 
       setSuccess("Çalışan başarıyla eklendi!");
       setEmployee({
