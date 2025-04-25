@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import type { Machine } from "../types";
 import Link from "next/link";
 import { hasMachinePermission } from "../lib/authUtils";
-import { getData } from "../lib/dataService";
+import { getData, getActiveMachines } from "../lib/dataService";
 
 type MachineWithOperatorCount = Machine & {
   operator_count: number;
@@ -20,7 +20,7 @@ export default function MachinesPage() {
       try {
         console.log("Makineler yükleniyor...");
         // dataService'i kullan
-        const machinesData = await getData<Machine>("machines");
+        const machinesData = await getActiveMachines<Machine>();
         console.log("Yüklenen makine verileri:", machinesData);
         
         if (machinesData) {

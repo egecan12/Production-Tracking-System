@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { hasModuleAccess, getCurrentUserRole } from "../lib/authUtils";
 import AccessDenied from "../components/AccessDenied";
 import Link from "next/link";
-import { getData, createData, deleteData } from "../lib/dataService";
+import { getData, createData, deleteData, getActiveCustomers } from "../lib/dataService";
 import ConfirmModal from "../components/ConfirmModal";
 
 // Customer interface (aynı tipte olmalı)
@@ -76,7 +76,7 @@ export default function CustomersPage() {
   async function fetchCustomers() {
     try {
       console.log("Müşteriler yükleniyor...");
-      const data = await getData<Customer>("customers");
+      const data = await getActiveCustomers<Customer>();
       console.log("Yüklenen müşteriler:", data);
       setCustomers(data || []);
     } catch (error: any) {
@@ -135,18 +135,18 @@ export default function CustomersPage() {
     try {
       setDeleteLoading(true);
       
-      console.log("Müşteri siliniyor:", deleteModal.customerId);
+      console.log("Müşteri pasif duruma alınıyor:", deleteModal.customerId);
       await deleteData("customers", { id: deleteModal.customerId });
       
-      console.log("Müşteri silindi");
+      console.log("Müşteri pasif duruma alındı");
       setCustomers(
         customers.filter((customer) => customer.id !== deleteModal.customerId)
       );
       
       setDeleteModal({ isOpen: false, customerId: "", customerName: "" });
     } catch (error: any) {
-      console.error("Müşteri silme hatası:", error);
-      setError("Müşteri silinemedi: " + error.message);
+      console.error("Müşteri pasif duruma alma hatası:", error);
+      setError("Müşteri pasif duruma alınamadı: " + error.message);
     } finally {
       setDeleteLoading(false);
     }
@@ -410,9 +410,9 @@ export default function CustomersPage() {
 
         <ConfirmModal
           isOpen={deleteModal.isOpen}
-          title="Müşteri Silme"
-          message={`"${deleteModal.customerName}" isimli müşteriyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`}
-          confirmText="Evet, Sil"
+          title="Müşteriyi Pasif Duruma Al"
+          message={`"${deleteModal.customerName}" isimli müşteriyi pasif duruma almak istediğinizden emin misiniz? Bu işlem daha sonra geri alınabilir.`}
+          confirmText="Evet, Pasif Duruma Al"
           cancelText="İptal"
           onConfirm={handleDeleteCustomer}
           onCancel={cancelDelete}

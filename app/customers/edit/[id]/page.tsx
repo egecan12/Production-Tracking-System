@@ -17,14 +17,13 @@ export default function EditCustomerPage() {
   const [success, setSuccess] = useState<string | null>(null);
 
   // Customer form data
-  const [customer, setCustomer] = useState<
-    Omit<Customer, "created_at" | "updated_at">
-  >({
+  const [customer, setCustomer] = useState<Customer>({
     id: customerId as string,
     name: "",
     company_name: "",
     contact_email: "",
     phone_number: "",
+    is_active: true,
   });
 
   useEffect(() => {
@@ -45,12 +44,14 @@ export default function EditCustomerPage() {
           throw new Error("Müşteri bulunamadı");
         }
 
+        const customerData = data[0];
         setCustomer({
-          id: data.id,
-          name: data.name,
-          company_name: data.company_name || "",
-          contact_email: data.contact_email || "",
-          phone_number: data.phone_number || "",
+          id: customerData.id,
+          name: customerData.name,
+          company_name: customerData.company_name || "",
+          contact_email: customerData.contact_email || "",
+          phone_number: customerData.phone_number || "",
+          is_active: customerData.is_active === undefined ? true : customerData.is_active,
         });
       } catch (err: unknown) {
         console.error("Müşteri verisi alınırken hata:", err);
@@ -257,6 +258,28 @@ export default function EditCustomerPage() {
                 className="w-full border border-gray-600 rounded-md shadow-sm py-2 px-3 bg-gray-700 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="İsteğe bağlı"
               />
+            </div>
+
+            <div className="mb-4">
+              <label htmlFor="is_active" className="block mb-1 font-medium text-gray-300">
+                Durum
+              </label>
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="is_active"
+                  name="is_active"
+                  checked={customer.is_active}
+                  onChange={(e) => setCustomer({ ...customer, is_active: e.target.checked })}
+                  className="w-5 h-5 mr-2 rounded accent-blue-500 cursor-pointer"
+                />
+                <span className="text-gray-300">
+                  {customer.is_active ? "Aktif" : "Pasif"}
+                </span>
+              </div>
+              <p className="text-sm text-gray-400 mt-1">
+                Pasif müşteriler listede görünmez ve yeni sipariş oluşturma işlemlerinde kullanılamaz.
+              </p>
             </div>
 
             <div className="flex gap-3 pt-2">

@@ -164,9 +164,9 @@ export async function POST(request: NextRequest) {
           
           console.log(`❌ Veri silme işlemi başlatılıyor: ${table}`);
           
-          // Eğer employees tablosu ise, silme yerine is_active = false olarak güncelle
-          if (table === 'employees') {
-            console.log(`🔄 Çalışan silme yerine pasif duruma alınıyor`);
+          // Eğer employees, customers veya machines tablosu ise, silme yerine is_active = false olarak güncelle
+          if (table === 'employees' || table === 'customers' || table === 'machines') {
+            console.log(`🔄 ${table} kaydı silme yerine pasif duruma alınıyor`);
             let updateQuery = supabaseAdmin.from(table).update({ is_active: false });
             
             // Filtreleri uygula

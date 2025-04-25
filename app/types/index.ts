@@ -17,6 +17,7 @@ export type Machine = {
   status: 'active' | 'inactive' | 'maintenance';
   created_at?: string;
   updated_at?: string;
+  is_active: boolean;
 };
 
 export type WorkSession = {
@@ -51,6 +52,7 @@ export type Customer = {
   phone_number?: string;
   created_at?: string;
   updated_at?: string;
+  is_active: boolean;
 };
 
 export type Order = {

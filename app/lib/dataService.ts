@@ -116,6 +116,42 @@ export async function getActiveEmployees<T = any>(): Promise<T[]> {
 }
 
 /**
+ * Sadece aktif müşterileri almak için özel fonksiyon
+ */
+export async function getActiveCustomers<T = any>(): Promise<T[]> {
+  const result = await fetchData<T>({
+    table: 'customers',
+    action: 'read',
+    filters: { is_active: true },
+  });
+
+  if (!result.success) {
+    console.error(`Aktif müşterileri alma hatası:`, result.error);
+    return [];
+  }
+
+  return result.data || [];
+}
+
+/**
+ * Sadece aktif makineleri almak için özel fonksiyon
+ */
+export async function getActiveMachines<T = any>(): Promise<T[]> {
+  const result = await fetchData<T>({
+    table: 'machines',
+    action: 'read',
+    filters: { is_active: true },
+  });
+
+  if (!result.success) {
+    console.error(`Aktif makineleri alma hatası:`, result.error);
+    return [];
+  }
+
+  return result.data || [];
+}
+
+/**
  * Tablo verisini günceller
  */
 export async function updateData<T = any>(table: DataTable, data: Partial<T>, filters: Record<string, any>): Promise<T[]> {
