@@ -19,6 +19,7 @@ export default function CreateEmployeePage() {
     name: "",
     email: "",
     phone: "",
+    is_active: true, // Varsayılan olarak aktif
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,6 +53,7 @@ export default function CreateEmployeePage() {
         name: "",
         email: "",
         phone: "",
+        is_active: true,
       });
 
       // 2 saniye sonra çalışanlar sayfasına yönlendir
@@ -157,6 +159,28 @@ export default function CreateEmployeePage() {
                 className="w-full border border-gray-600 rounded-md shadow-sm py-2 px-3 bg-gray-700 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="İsteğe bağlı"
               />
+            </div>
+
+            <div className="mb-4">
+              <label htmlFor="is_active" className="block mb-1 font-medium">
+                Durum
+              </label>
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="is_active"
+                  name="is_active"
+                  checked={employee.is_active}
+                  onChange={(e) => setEmployee({ ...employee, is_active: e.target.checked })}
+                  className="w-5 h-5 mr-2 rounded accent-blue-500 cursor-pointer"
+                />
+                <span className="text-gray-300">
+                  {employee.is_active ? "Aktif" : "Pasif"}
+                </span>
+              </div>
+              <p className="text-sm text-gray-400 mt-1">
+                Pasif çalışanlar listede görünmez ve çalışma atamaları yapılamaz.
+              </p>
             </div>
 
             <div className="pt-2">

@@ -98,6 +98,24 @@ export async function createData<T = any>(table: DataTable, data: Partial<T> | P
 }
 
 /**
+ * Sadece aktif çalışanları almak için özel fonksiyon
+ */
+export async function getActiveEmployees<T = any>(): Promise<T[]> {
+  const result = await fetchData<T>({
+    table: 'employees',
+    action: 'read',
+    filters: { is_active: true },
+  });
+
+  if (!result.success) {
+    console.error(`Aktif çalışanları alma hatası:`, result.error);
+    return [];
+  }
+
+  return result.data || [];
+}
+
+/**
  * Tablo verisini günceller
  */
 export async function updateData<T = any>(table: DataTable, data: Partial<T>, filters: Record<string, any>): Promise<T[]> {

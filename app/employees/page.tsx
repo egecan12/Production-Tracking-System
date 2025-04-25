@@ -46,7 +46,7 @@ export default function EmployeesPage() {
   async function fetchEmployees() {
     try {
       console.log("Çalışanlar yükleniyor...");
-      const data = await getData<Employee>("employees");
+      const data = await getData<Employee>("employees", { is_active: true });
       console.log("Çalışan verileri:", data);
       setEmployees(data || []);
     } catch (error: any) {
@@ -78,9 +78,9 @@ export default function EmployeesPage() {
 
     setDeleteLoading(true);
     try {
-      console.log("Çalışan siliniyor:", deleteModal.employeeId);
+      console.log("Çalışan pasif duruma alınıyor:", deleteModal.employeeId);
       await deleteData("employees", { id: deleteModal.employeeId });
-      console.log("Çalışan silindi");
+      console.log("Çalışan pasif duruma alındı");
 
       // Update employees list
       setEmployees(
@@ -94,8 +94,8 @@ export default function EmployeesPage() {
         employeeName: "",
       });
     } catch (error: any) {
-      console.error("Çalışan silme hatası:", error);
-      setError("Çalışan silinemedi: " + error.message);
+      console.error("Çalışan pasif duruma alma hatası:", error);
+      setError("Çalışan pasif duruma alınamadı: " + error.message);
     } finally {
       setDeleteLoading(false);
     }
@@ -208,9 +208,9 @@ export default function EmployeesPage() {
 
       <ConfirmModal
         isOpen={deleteModal.isOpen}
-        title="Çalışan Silme"
-        message={`"${deleteModal.employeeName}" isimli çalışanı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`}
-        confirmText="Evet, Sil"
+        title="Çalışanı Pasif Duruma Al"
+        message={`"${deleteModal.employeeName}" isimli çalışanı pasif duruma almak istediğinizden emin misiniz? Bu işlem daha sonra geri alınabilir.`}
+        confirmText="Evet, Pasif Duruma Al"
         cancelText="İptal"
         onConfirm={handleDelete}
         onCancel={cancelDelete}

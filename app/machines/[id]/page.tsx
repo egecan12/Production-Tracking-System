@@ -5,7 +5,7 @@ import type { Machine, WorkSession, Employee } from "../../types";
 import Link from "next/link";
 import ConfirmModal from "../../components/ConfirmModal";
 import { hasMachinePermission } from "../../lib/authUtils";
-import { getData, createData, updateData, deleteData } from "../../lib/dataService";
+import { getData, createData, updateData, deleteData, getActiveEmployees } from "../../lib/dataService";
 
 interface PageProps {
   params: {
@@ -30,6 +30,7 @@ export default function MachinePage({ params }: PageProps) {
     operatorName: "",
   });
   const [removeLoading, setRemoveLoading] = useState(false);
+  const [availableEmployees, setAvailableEmployees] = useState<Employee[]>([]);
 
   const canEdit = hasMachinePermission("edit");
   const canDelete = hasMachinePermission("delete");
@@ -78,11 +79,11 @@ export default function MachinePage({ params }: PageProps) {
           setActiveOperators(operatorsWithEmployees as (WorkSession & { employee: Employee })[]);
         }
 
-        // Fetch all employees for dropdown
-        console.log("Tüm çalışanlar yükleniyor...");
-        const employeesData = await getData<Employee>("employees");
-        console.log("Çalışan verileri:", employeesData);
-        setEmployees(employeesData);
+        // Get employees
+        console.log("Çalışanlar yükleniyor...");
+        const employeeData = await getActiveEmployees<Employee>();
+        console.log("Çalışan verileri:", employeeData);
+        setAvailableEmployees(employeeData);
         
       } catch (error: unknown) {
         console.error("Veri yükleme hatası:", error);
@@ -542,7 +543,7 @@ export default function MachinePage({ params }: PageProps) {
             className="flex-grow md:w-2/3 px-3 py-2 bg-gray-700 border border-gray-600 text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value="">Çalışan Seçin</option>
-            {employees.map((employee) => (
+            {availableEmployees.map((employee) => (
               <option key={employee.id} value={employee.id}>
                 {employee.id} - {employee.name}
               </option>

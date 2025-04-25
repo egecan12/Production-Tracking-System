@@ -163,17 +163,35 @@ export async function POST(request: NextRequest) {
           }
           
           console.log(`❌ Veri silme işlemi başlatılıyor: ${table}`);
-          let deleteQuery = supabaseAdmin.from(table).delete();
           
-          // Filtreleri uygula
-          Object.entries(filters).forEach(([key, value]) => {
-            if (value !== undefined && value !== null) {
-              console.log(`🔍 Filtre uygulanıyor: ${key}=${value}`);
-              deleteQuery = deleteQuery.eq(key, value);
-            }
-          });
-          
-          result = await deleteQuery.select();
+          // Eğer employees tablosu ise, silme yerine is_active = false olarak güncelle
+          if (table === 'employees') {
+            console.log(`🔄 Çalışan silme yerine pasif duruma alınıyor`);
+            let updateQuery = supabaseAdmin.from(table).update({ is_active: false });
+            
+            // Filtreleri uygula
+            Object.entries(filters).forEach(([key, value]) => {
+              if (value !== undefined && value !== null) {
+                console.log(`🔍 Filtre uygulanıyor: ${key}=${value}`);
+                updateQuery = updateQuery.eq(key, value);
+              }
+            });
+            
+            result = await updateQuery.select();
+          } else {
+            // Diğer tablolar için normal silme işlemi
+            let deleteQuery = supabaseAdmin.from(table).delete();
+            
+            // Filtreleri uygula
+            Object.entries(filters).forEach(([key, value]) => {
+              if (value !== undefined && value !== null) {
+                console.log(`🔍 Filtre uygulanıyor: ${key}=${value}`);
+                deleteQuery = deleteQuery.eq(key, value);
+              }
+            });
+            
+            result = await deleteQuery.select();
+          }
           break;
           
         default:
