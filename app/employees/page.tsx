@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "../lib/supabase";
 import type { Employee } from "../types";
 import Link from "next/link";
 import ConfirmModal from "../components/ConfirmModal";
+import { getData, deleteData } from "../lib/dataService";
 
 // Format telefon numarası fonksiyonu
 const formatPhoneNumber = (phoneNumber: string): string => {
@@ -45,16 +45,13 @@ export default function EmployeesPage() {
 
   async function fetchEmployees() {
     try {
-      const { data, error } = await supabase
-        .from("employees")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
+      console.log("Çalışanlar yükleniyor...");
+      const data = await getData<Employee>("employees");
+      console.log("Çalışan verileri:", data);
       setEmployees(data || []);
-    } catch (error) {
-      console.error("Error fetching employees:", error);
-      setError("Çalışanlar yüklenemedi");
+    } catch (error: any) {
+      console.error("Çalışan yükleme hatası:", error);
+      setError("Çalışanlar yüklenemedi: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -81,12 +78,9 @@ export default function EmployeesPage() {
 
     setDeleteLoading(true);
     try {
-      const { error } = await supabase
-        .from("employees")
-        .delete()
-        .eq("id", deleteModal.employeeId);
-
-      if (error) throw error;
+      console.log("Çalışan siliniyor:", deleteModal.employeeId);
+      await deleteData("employees", { id: deleteModal.employeeId });
+      console.log("Çalışan silindi");
 
       // Update employees list
       setEmployees(
@@ -99,9 +93,9 @@ export default function EmployeesPage() {
         employeeId: "",
         employeeName: "",
       });
-    } catch (error) {
-      console.error("Error deleting employee:", error);
-      setError("Çalışan silinemedi");
+    } catch (error: any) {
+      console.error("Çalışan silme hatası:", error);
+      setError("Çalışan silinemedi: " + error.message);
     } finally {
       setDeleteLoading(false);
     }

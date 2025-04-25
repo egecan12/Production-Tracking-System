@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "../lib/supabase";
+import Link from "next/link";
 import { t } from "../lib/translations";
+import { getData } from "../lib/dataService";
 
 interface Customer {
   id: string;
@@ -10,11 +11,10 @@ interface Customer {
   company_name: string;
 }
 
-interface Order {
+export interface Order {
   id: string;
-  order_number: string;
   customer_id: string;
-  customer: Customer;
+  order_number: string;
   product_type: string;
   thickness: number;
   width: number;
@@ -24,8 +24,10 @@ interface Order {
   isolation_type: string;
   delivery_week: number;
   production_start_date: string;
-  status: string;
+  status: "pending" | "in_progress" | "completed" | "cancelled";
   created_at: string;
+  updated_at: string;
+  customer?: Customer;
 }
 
 export default function OrderList() {
@@ -37,29 +39,17 @@ export default function OrderList() {
     async function fetchOrders() {
       try {
         setLoading(true);
-        setError("");
-
-        const { data, error } = await supabase
-          .from("orders")
-          .select(
-            `
-            *,
-            customer:customers!orders_customer_id_fkey (
-              id,
-              name,
-              company_name
-            )
-          `
-          )
-          .order("created_at", { ascending: false });
-
-        if (error) throw error;
-
+        console.log("Siparişler dataService ile yükleniyor...");
+        
+        // dataService kullanarak siparişleri getir
+        const data = await getData<Order>("orders");
+        console.log("Sipariş verileri:", data);
+        
         setOrders(data || []);
-      } catch (err: unknown) {
-        const errorMessage =
-          err instanceof Error ? err.message : "An unknown error occurred";
-        setError(`Data fetch error: ${errorMessage}`);
+        setError("");
+      } catch (err: any) {
+        console.error("Sipariş yükleme hatası:", err);
+        setError(err.message || "Siparişler yüklenirken bir hata oluştu.");
       } finally {
         setLoading(false);
       }
@@ -74,13 +64,13 @@ export default function OrderList() {
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case "PENDING":
+      case "pending":
         return "bg-yellow-800 text-yellow-100";
-      case "IN_PROGRESS":
+      case "in_progress":
         return "bg-blue-800 text-blue-100";
-      case "COMPLETED":
+      case "completed":
         return "bg-green-800 text-green-100";
-      case "CANCELLED":
+      case "cancelled":
         return "bg-red-800 text-red-100";
       default:
         return "bg-gray-800 text-gray-100";
@@ -89,13 +79,13 @@ export default function OrderList() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "PENDING":
+      case "pending":
         return t("Beklemede");
-      case "IN_PROGRESS":
+      case "in_progress":
         return t("Üretimde");
-      case "COMPLETED":
+      case "completed":
         return t("Tamamlandı");
-      case "CANCELLED":
+      case "cancelled":
         return t("İptal Edildi");
       default:
         return status;
@@ -167,9 +157,9 @@ export default function OrderList() {
             >
               <td className="py-3 px-4 text-gray-300">{order.order_number}</td>
               <td className="py-3 px-4 text-gray-300">
-                {order.customer.company_name
+                {order.customer?.company_name
                   ? `${order.customer.name} (${order.customer.company_name})`
-                  : order.customer.name}
+                  : order.customer?.name}
               </td>
               <td className="py-3 px-4 text-gray-300">{order.product_type}</td>
               <td className="py-3 px-4 text-gray-300">

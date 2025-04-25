@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "../../lib/supabase";
 import type { Machine, WorkSession, Employee } from "../../types";
 import Link from "next/link";
 import ConfirmModal from "../../components/ConfirmModal";
 import { hasMachinePermission } from "../../lib/authUtils";
+import { getData, createData, updateData, deleteData } from "../../lib/dataService";
 
 interface PageProps {
   params: {
@@ -39,39 +39,55 @@ export default function MachinePage({ params }: PageProps) {
   useEffect(() => {
     async function fetchData() {
       try {
-        // Fetch machine details
-        const { data: machineData, error: machineError } = await supabase
-          .from("machines")
-          .select("*")
-          .eq("id", machineId)
-          .single();
-
-        if (machineError) throw machineError;
-        setMachine(machineData);
+        console.log("Makine verileri yükleniyor...");
+        
+        // Fetch machine details using dataService
+        const machinesData = await getData<Machine>("machines", { id: machineId });
+        console.log("Makine verileri:", machinesData);
+        
+        if (machinesData && machinesData.length > 0) {
+          setMachine(machinesData[0]);
+        } else {
+          throw new Error("Makine bulunamadı");
+        }
 
         // Fetch active operators for this machine
-        const { data: operatorsData, error: operatorsError } = await supabase
-          .from("work_sessions")
-          .select(`*, employee:employee_id(*)`)
-          .eq("machine_id", machineId)
-          .eq("is_active", true);
-
-        if (operatorsError) throw operatorsError;
-        setActiveOperators(
-          operatorsData as (WorkSession & { employee: Employee })[]
-        );
+        // Not: work_sessions tablosu için join işlemi gerekiyor ama API'de desteklenmiyor şu an
+        // İlerde API üzerinden ilişkisel sorgular eklenebilir veya çoklu sorgu yapılabilir
+        console.log("Aktif operatör verileri yükleniyor...");
+        const sessionsData = await getData<WorkSession>("work_sessions", { 
+          machine_id: machineId,
+          is_active: true
+        });
+        console.log("İş oturumları:", sessionsData);
+        
+        if (sessionsData && sessionsData.length > 0) {
+          // Şimdi her bir oturum için çalışan bilgilerini alalım
+          const operatorsWithEmployees = await Promise.all(
+            sessionsData.map(async (session) => {
+              const employeeData = await getData<Employee>("employees", { 
+                id: session.employee_id 
+              });
+              return {
+                ...session,
+                employee: employeeData[0]
+              };
+            })
+          );
+          
+          setActiveOperators(operatorsWithEmployees as (WorkSession & { employee: Employee })[]);
+        }
 
         // Fetch all employees for dropdown
-        const { data: employeesData, error: employeesError } = await supabase
-          .from("employees")
-          .select("*");
-
-        if (employeesError) throw employeesError;
+        console.log("Tüm çalışanlar yükleniyor...");
+        const employeesData = await getData<Employee>("employees");
+        console.log("Çalışan verileri:", employeesData);
         setEmployees(employeesData);
+        
       } catch (error: unknown) {
-        console.error("Error fetching data:", error);
+        console.error("Veri yükleme hatası:", error);
         const errorMessage =
-          error instanceof Error ? error.message : "Unknown error occurred";
+          error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu";
         setMessage(`Hata: ${errorMessage}`);
       } finally {
         setLoading(false);
@@ -110,32 +126,41 @@ export default function MachinePage({ params }: PageProps) {
         return;
       }
 
-      // Add new operator record
-      const { data, error } = await supabase
-        .from("work_sessions")
-        .insert([
-          {
-            employee_id: selectedEmployeeId,
-            machine_id: machineId,
-            start_time: new Date().toISOString(),
-            is_active: true,
-          },
-        ])
-        .select(`*, employee:employee_id(*)`);
-
-      if (error) throw error;
-
-      // Update active operators list
-      setActiveOperators([
-        ...activeOperators,
-        ...(data as (WorkSession & { employee: Employee })[]),
-      ]);
-      setSelectedEmployeeId("");
-      setMessage("Çalışan başarıyla eklendi");
+      // Add new operator record using dataService
+      console.log("Operatör ekleniyor...");
+      const sessionData = {
+        employee_id: selectedEmployeeId,
+        machine_id: machineId,
+        start_time: new Date().toISOString(),
+        is_active: true,
+      };
+      
+      const resultData = await createData<WorkSession>("work_sessions", sessionData);
+      console.log("Operatör ekleme sonucu:", resultData);
+      
+      if (resultData && resultData.length > 0) {
+        // Get employee details
+        const employeeData = await getData<Employee>("employees", { 
+          id: selectedEmployeeId 
+        });
+        
+        // Add to active operators
+        const newOperator = {
+          ...resultData[0],
+          employee: employeeData[0]
+        };
+        
+        setActiveOperators([
+          ...activeOperators,
+          newOperator as (WorkSession & { employee: Employee })
+        ]);
+        setSelectedEmployeeId("");
+        setMessage("Çalışan başarıyla eklendi");
+      }
     } catch (error: unknown) {
-      console.error("Error adding operator:", error);
+      console.error("Operatör ekleme hatası:", error);
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+        error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu";
       setMessage(`Hata: ${errorMessage}`);
     } finally {
       setLoading(false);
@@ -165,16 +190,15 @@ export default function MachinePage({ params }: PageProps) {
     setMessage("");
 
     try {
-      // Update the operator record
-      const { error } = await supabase
-        .from("work_sessions")
-        .update({
-          end_time: new Date().toISOString(),
-          is_active: false,
-        })
-        .eq("id", removeModal.operatorId);
-
-      if (error) throw error;
+      // Update the operator record using dataService
+      console.log("Operatör çıkışı yapılıyor...");
+      const updatedSessionData = {
+        end_time: new Date().toISOString(),
+        is_active: false,
+      };
+      
+      await updateData("work_sessions", updatedSessionData, { id: removeModal.operatorId });
+      console.log("Operatör çıkışı tamamlandı");
 
       // Update the active operators list
       setActiveOperators(
@@ -189,9 +213,9 @@ export default function MachinePage({ params }: PageProps) {
         operatorName: "",
       });
     } catch (error: unknown) {
-      console.error("Error removing operator:", error);
+      console.error("Operatör çıkarma hatası:", error);
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+        error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu";
       setMessage(`Hata: ${errorMessage}`);
     } finally {
       setRemoveLoading(false);
@@ -215,12 +239,10 @@ export default function MachinePage({ params }: PageProps) {
     setMessage("");
 
     try {
-      const { error } = await supabase
-        .from("machines")
-        .update({ status: newStatus })
-        .eq("id", machineId);
-
-      if (error) throw error;
+      // Update machine status using dataService
+      console.log("Makine durumu güncelleniyor...");
+      await updateData("machines", { status: newStatus }, { id: machineId });
+      console.log("Makine durumu güncellendi");
 
       // Update local state
       setMachine({ ...machine, status: newStatus });
@@ -234,9 +256,9 @@ export default function MachinePage({ params }: PageProps) {
         }" olarak güncellendi`
       );
     } catch (error: unknown) {
-      console.error("Error updating machine status:", error);
+      console.error("Makine durumu güncelleme hatası:", error);
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+        error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu";
       setMessage(`Hata: ${errorMessage}`);
     } finally {
       setStatusLoading(false);
@@ -253,14 +275,8 @@ export default function MachinePage({ params }: PageProps) {
 
   if (!machine) {
     return (
-      <div className="text-center py-8 bg-gray-900 min-h-screen">
-        <p className="text-red-400">Makina bulunamadı</p>
-        <Link
-          href="/machines"
-          className="mt-4 inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded"
-        >
-          Makinelere Dön
-        </Link>
+      <div className="text-center py-8 text-red-500 bg-gray-900 min-h-screen">
+        Makina bulunamadı. <Link href="/machines" className="underline">Geri dön</Link>
       </div>
     );
   }

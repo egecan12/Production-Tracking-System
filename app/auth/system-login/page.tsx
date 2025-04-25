@@ -18,6 +18,15 @@ export default function SystemLoginPage() {
     setLoading(true);
 
     try {
+      console.log("Login form gönderiliyor:", { username });
+      
+      // Minimal validasyon
+      if (!username.trim() || !password) {
+        setError("Kullanıcı adı ve şifre gereklidir.");
+        setLoading(false);
+        return;
+      }
+      
       const response = await fetch("/api/system-auth", {
         method: "POST",
         headers: {
@@ -27,6 +36,7 @@ export default function SystemLoginPage() {
       });
 
       const data = await response.json();
+      console.log("Login API yanıtı:", { status: response.status, success: data.success });
 
       if (response.ok && data.success) {
         // Save login state and user info to localStorage
@@ -35,21 +45,21 @@ export default function SystemLoginPage() {
 
         // Save user role
         if (data.userData && data.userData.role) {
-          console.log("DEBUG - Login successful, saving user role:", data.userData.role);
+          console.log("Login başarılı, rol kaydediliyor:", data.userData.role);
           localStorage.setItem("userRole", data.userData.role);
         } else {
-          console.log("DEBUG - Login successful but no role data received:", data.userData);
+          console.log("Login başarılı fakat rol bilgisi yok:", data.userData);
         }
 
         // Redirect to home page
         router.push("/");
       } else {
-        console.log("DEBUG - Login failed:", data);
-        setError(data.message || t("Giriş işlemi başarısız oldu."));
+        console.error("Login başarısız:", data);
+        setError(data.message || "Giriş işlemi başarısız oldu. Lütfen bilgilerinizi kontrol edin.");
       }
-    } catch (err) {
-      setError(t("Giriş işlemi sırasında bir hata oluştu. Lütfen tekrar deneyin."));
-      console.error(t("Giriş hatası:"), err);
+    } catch (err: any) {
+      console.error("Login hatası:", err);
+      setError("Giriş işlemi sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin. Hata detayı: " + (err.message || ""));
     } finally {
       setLoading(false);
     }

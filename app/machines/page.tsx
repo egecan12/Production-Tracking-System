@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "../lib/supabase";
 import type { Machine } from "../types";
 import Link from "next/link";
 import { hasMachinePermission } from "../lib/authUtils";
+import { getData } from "../lib/dataService";
 
 type MachineWithOperatorCount = Machine & {
   operator_count: number;
@@ -18,35 +18,22 @@ export default function MachinesPage() {
   useEffect(() => {
     async function fetchMachines() {
       try {
-        const { data, error } = await supabase
-          .from("machines")
-          .select("*")
-          .order("id");
-
-        if (error) throw error;
-
-        if (data) {
-          const machinesWithCounts = await Promise.all(
-            data.map(async (machine) => {
-              const { count, error: countError } = await supabase
-                .from("work_sessions")
-                .select("*", { count: "exact", head: false })
-                .eq("machine_id", machine.id)
-                .eq("is_active", true);
-
-              if (countError) {
-                console.error("Operatör sayma hatası:", countError);
-                return { ...machine, operator_count: 0 };
-              }
-
-              return { ...machine, operator_count: count || 0 };
-            })
-          );
+        console.log("Makineler yükleniyor...");
+        // dataService'i kullan
+        const machinesData = await getData<Machine>("machines");
+        console.log("Yüklenen makine verileri:", machinesData);
+        
+        if (machinesData) {
+          // Şimdilik operatör sayısını sıfır olarak ayarlayalım
+          // İlerde work_sessions API'ye eklenebilir
+          const machinesWithCounts = machinesData.map(machine => {
+            return { ...machine, operator_count: 0 };
+          });
 
           setMachines(machinesWithCounts);
         }
       } catch (error) {
-        console.error("Error fetching machines:", error);
+        console.error("Makineleri getirme hatası:", error);
       } finally {
         setLoading(false);
       }

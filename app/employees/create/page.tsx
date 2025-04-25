@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../../lib/supabase";
 import Link from "next/link";
 import type { Employee } from "../../types";
 import { createData } from "../../lib/dataService";
@@ -39,12 +38,14 @@ export default function CreateEmployeePage() {
         throw new Error("İsim ve email alanları zorunludur.");
       }
 
+      console.log("Çalışan ekleniyor:", employee);
       // Yeni veri servisi ile çalışan ekle
-      await createData('employees', {
+      const result = await createData<Employee>('employees', {
         name: employee.name,
         email: employee.email,
         phone: employee.phone || null,
       });
+      console.log("Çalışan eklendi:", result);
 
       setSuccess("Çalışan başarıyla eklendi!");
       setEmployee({

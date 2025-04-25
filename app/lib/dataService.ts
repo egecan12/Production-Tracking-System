@@ -6,7 +6,15 @@
 
 // Genel tablo işlemleri için tip tanımlamaları
 export type DataAction = 'read' | 'create' | 'update' | 'delete';
-export type DataTable = 'employees' | 'customers' | 'machines' | 'orders' | 'work_orders' | 'production_logs' | 'production_specifications';
+export type DataTable = 
+  | 'employees' 
+  | 'customers' 
+  | 'machines' 
+  | 'orders' 
+  | 'work_orders' 
+  | 'production_logs' 
+  | 'production_specifications'
+  | 'work_sessions';  // İş oturumları tablosu eklendi
 
 // API servisine yapılacak istekler için tip tanımı
 interface DataRequest {

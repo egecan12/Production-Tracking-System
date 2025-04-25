@@ -3,11 +3,27 @@
 import OrderForm from "../components/OrderForm";
 import OrderList from "../components/OrderList";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getData } from "../lib/dataService";
 
 export default function OrdersPage() {
   const [showForm, setShowForm] = useState(true);
   const [showList, setShowList] = useState(true);
+
+  // API'nin çalışıp çalışmadığını kontrol et
+  useEffect(() => {
+    async function checkApi() {
+      try {
+        console.log("API kontrol ediliyor...");
+        const result = await getData("orders");
+        console.log("API yanıtı:", result);
+      } catch (error) {
+        console.error("API kontrol hatası:", error);
+      }
+    }
+    
+    checkApi();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-900">

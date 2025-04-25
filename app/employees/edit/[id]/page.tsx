@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { supabase } from "../../../lib/supabase";
 import Link from "next/link";
 import type { Employee } from "../../../types";
+import { getData, updateData } from "../../../lib/dataService";
 
 export default function EditEmployeePage() {
   const router = useRouter();
@@ -32,23 +32,20 @@ export default function EditEmployeePage() {
         setIsLoading(true);
         setError(null);
 
-        const { data, error } = await supabase
-          .from("employees")
-          .select("*")
-          .eq("id", employeeId)
-          .single();
+        console.log("Çalışan bilgileri yükleniyor:", employeeId);
+        const data = await getData<Employee>("employees", { id: employeeId });
+        console.log("Çalışan verisi:", data);
 
-        if (error) throw error;
-
-        if (!data) {
+        if (!data || data.length === 0) {
           throw new Error("Çalışan bulunamadı");
         }
 
+        const employeeData = data[0];
         setEmployee({
-          id: data.id,
-          name: data.name,
-          email: data.email,
-          phone: data.phone || "",
+          id: employeeData.id,
+          name: employeeData.name,
+          email: employeeData.email,
+          phone: employeeData.phone || "",
         });
       } catch (err: unknown) {
         console.error("Çalışan verisi alınırken hata:", err);
@@ -83,16 +80,15 @@ export default function EditEmployeePage() {
       }
 
       // Çalışan bilgilerini güncelle
-      const { error: supabaseError } = await supabase
-        .from("employees")
-        .update({
-          name: employee.name,
-          email: employee.email,
-          phone: employee.phone || null,
-        })
-        .eq("id", employeeId);
-
-      if (supabaseError) throw supabaseError;
+      console.log("Çalışan güncelleniyor:", employeeId);
+      const updatedData = {
+        name: employee.name,
+        email: employee.email,
+        phone: employee.phone || null,
+      };
+      
+      await updateData<Employee>("employees", updatedData, { id: employeeId });
+      console.log("Çalışan güncellendi");
 
       setSuccess("Çalışan bilgileri başarıyla güncellendi!");
 

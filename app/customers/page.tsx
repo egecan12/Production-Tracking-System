@@ -1,12 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "../lib/supabase";
-import type { Customer } from "../types";
-import Link from "next/link";
-import ConfirmModal from "../components/ConfirmModal";
 import { hasModuleAccess, getCurrentUserRole } from "../lib/authUtils";
 import AccessDenied from "../components/AccessDenied";
+import Link from "next/link";
+import { getData, createData, deleteData } from "../lib/dataService";
+import ConfirmModal from "../components/ConfirmModal";
+
+// Customer interface (aynı tipte olmalı)
+interface Customer {
+  id: string;
+  name: string;
+  company_name: string;
+  contact_email: string;
+  phone_number: string;
+  created_at: string;
+  updated_at: string;
+}
 
 // Format telefon numarası fonksiyonu
 const formatPhoneNumber = (phoneNumber: string): string => {
@@ -65,16 +75,13 @@ export default function CustomersPage() {
 
   async function fetchCustomers() {
     try {
-      const { data, error } = await supabase
-        .from("customers")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
+      console.log("Müşteriler yükleniyor...");
+      const data = await getData<Customer>("customers");
+      console.log("Yüklenen müşteriler:", data);
       setCustomers(data || []);
-    } catch (error) {
-      console.error("Error fetching customers:", error);
-      setError("Müşteriler yüklenemedi");
+    } catch (error: any) {
+      console.error("Müşteri yükleme hatası:", error);
+      setError("Müşteriler yüklenemedi: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -82,31 +89,27 @@ export default function CustomersPage() {
 
   async function handleAddCustomer(e: React.FormEvent) {
     e.preventDefault();
-
-    if (!newCustomer.name) {
-      setError("Müşteri adı zorunludur");
-      return;
-    }
-
     try {
-      const { data, error } = await supabase
-        .from("customers")
-        .insert([newCustomer])
-        .select();
-
-      if (error) throw error;
-
-      setCustomers([...(data || []), ...customers]);
-      setNewCustomer({
-        name: "",
-        company_name: "",
-        contact_email: "",
-        phone_number: "",
-      });
+      setIsAddingCustomer(true);
+      
+      console.log("Yeni müşteri ekleniyor:", newCustomer);
+      const addedCustomers = await createData<Customer>("customers", newCustomer);
+      
+      if (addedCustomers && addedCustomers.length > 0) {
+        console.log("Müşteri eklendi:", addedCustomers[0]);
+        setCustomers([...(addedCustomers || []), ...customers]);
+        setNewCustomer({
+          name: "",
+          company_name: "",
+          contact_email: "",
+          phone_number: "",
+        });
+      }
+    } catch (error: any) {
+      console.error("Müşteri ekleme hatası:", error);
+      setError("Müşteri eklenemedi: " + error.message);
+    } finally {
       setIsAddingCustomer(false);
-    } catch (error) {
-      console.error("Error adding customer:", error);
-      setError("Müşteri eklenemedi");
     }
   }
 
@@ -126,31 +129,24 @@ export default function CustomersPage() {
     });
   }
 
-  async function handleDelete() {
+  async function handleDeleteCustomer() {
     if (!deleteModal.customerId) return;
-
-    setDeleteLoading(true);
+    
     try {
-      const { error } = await supabase
-        .from("customers")
-        .delete()
-        .eq("id", deleteModal.customerId);
-
-      if (error) throw error;
-
+      setDeleteLoading(true);
+      
+      console.log("Müşteri siliniyor:", deleteModal.customerId);
+      await deleteData("customers", { id: deleteModal.customerId });
+      
+      console.log("Müşteri silindi");
       setCustomers(
         customers.filter((customer) => customer.id !== deleteModal.customerId)
       );
-
-      // Close modal
-      setDeleteModal({
-        isOpen: false,
-        customerId: "",
-        customerName: "",
-      });
-    } catch (error) {
-      console.error("Error deleting customer:", error);
-      setError("Müşteri silinemedi");
+      
+      setDeleteModal({ isOpen: false, customerId: "", customerName: "" });
+    } catch (error: any) {
+      console.error("Müşteri silme hatası:", error);
+      setError("Müşteri silinemedi: " + error.message);
     } finally {
       setDeleteLoading(false);
     }
@@ -418,7 +414,7 @@ export default function CustomersPage() {
           message={`"${deleteModal.customerName}" isimli müşteriyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`}
           confirmText="Evet, Sil"
           cancelText="İptal"
-          onConfirm={handleDelete}
+          onConfirm={handleDeleteCustomer}
           onCancel={cancelDelete}
           isLoading={deleteLoading}
         />
