@@ -23,14 +23,27 @@ export default function MachinesPage() {
         const machinesData = await getActiveMachines<Machine>();
         console.log("Loaded machine data:", machinesData);
         
-        if (machinesData) {
-          // For now, set operator count to zero
-          // In future, it can be added to work_sessions API
-          const machinesWithCounts = machinesData.map(machine => {
-            return { ...machine, operator_count: 0 };
-          });
+        if (machinesData && machinesData.length > 0) {
+          // Get operator counts for each machine by querying active work sessions
+          const machinesWithCounts = await Promise.all(
+            machinesData.map(async (machine) => {
+              // Get active work sessions for this machine
+              const activeSessions = await getData<any>("work_sessions", { 
+                machine_id: machine.id,
+                is_active: true
+              });
+              
+              // Return machine with operator count
+              return { 
+                ...machine, 
+                operator_count: activeSessions ? activeSessions.length : 0 
+              };
+            })
+          );
 
           setMachines(machinesWithCounts);
+        } else {
+          setMachines([]);
         }
       } catch (error) {
         console.error("Error fetching machines:", error);
