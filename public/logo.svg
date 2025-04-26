@@ -36,4 +36,17 @@
     stroke-width="6"
     stroke-linecap="round"
   />
+  
+  <!-- Text -->
+  <text
+    x="256"
+    y="420"
+    fontSize="60"
+    fontWeight="bold"
+    fill="#FFFFFF"
+    textAnchor="middle"
+    dominantBaseline="middle"
+  >
+    ProdTrack
+  </text>
 </svg> 

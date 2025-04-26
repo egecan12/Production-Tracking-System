@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 
 export default function Logo() {
@@ -10,85 +12,51 @@ export default function Logo() {
           className="w-full h-full"
           fill="none"
         >
-          <g>
-            {/* Factory Building */}
-            <path 
-              d="M32 352v96a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16v-96" 
-              stroke="#4B5563" 
-              strokeWidth="24" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            />
-            <path 
-              d="M112 464v-112h96v112" 
-              stroke="#4B5563" 
-              strokeWidth="20" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            />
-            <path 
-              d="M304 464v-112h96v112" 
-              stroke="#4B5563" 
-              strokeWidth="20" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            />
-            
-            {/* Roof */}
-            <path 
-              d="M24 352l80-128h304l80 128" 
-              stroke="#4B5563" 
-              strokeWidth="24" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            />
-            
-            {/* Gear icon */}
-            <circle 
-              cx="256" 
-              cy="224" 
-              r="56" 
-              stroke="#6366F1" 
-              strokeWidth="16" 
-              fill="none"
-            />
-            
-            {/* Gear teeth */}
-            <path
-              d="M256 168v-32M256 312v-32M312 224h32M168 224h32M293 187l22-22M197 261l-22 22M293 261l22 22M197 187l-22-22"
-              stroke="#6366F1"
-              strokeWidth="14"
-              strokeLinecap="round"
-            />
-            
-            {/* Chart lines */}
-            <path
-              d="M172 96h168"
-              stroke="#EF4444"
-              strokeWidth="12"
-              strokeLinecap="round"
-            />
-            <path
-              d="M200 128h112"
-              stroke="#F59E0B"
-              strokeWidth="12"
-              strokeLinecap="round"
-            />
-            <path
-              d="M240 160h32"
-              stroke="#10B981"
-              strokeWidth="12"
-              strokeLinecap="round"
-            />
-          </g>
+          {/* Background */}
+          <rect width="512" height="512" rx="128" fill="#111827"/>
+          
+          {/* Main circle */}
+          <circle cx="256" cy="256" r="160" fill="none" stroke="#1E293B" stroke-width="24"/>
+          
+          {/* Progress circle */}
+          <path 
+            d="M256 96A160 160 0 0 1 416 256"
+            stroke="#6366F1" 
+            stroke-width="24" 
+            stroke-linecap="round"
+          />
+          
+          {/* Bar chart */}
+          <rect x="180" y="288" width="32" height="80" rx="12" fill="#F59E0B"/>
+          <rect x="240" y="256" width="32" height="112" rx="12" fill="#F59E0B"/>
+          <rect x="300" y="224" width="32" height="144" rx="12" fill="#EF4444"/>
+          
+          {/* Analytics line */}
+          <path
+            d="M170 208C190 198 210 170 230 184C250 198 270 136 290 152C310 168 330 184 350 174"
+            stroke="#10B981"
+            stroke-width="12"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            fill="none"
+          />
+          
+          {/* Small gear */}
+          <circle cx="186" cy="168" r="24" fill="none" stroke="#9CA3AF" stroke-width="8"/>
+          <path
+            d="M186 144v-12M186 204v-12M210 168h12M150 168h12M202 152l8-8M162 184l-8 8M202 184l8 8M162 152l-8-8"
+            stroke="#9CA3AF"
+            stroke-width="6"
+            stroke-linecap="round"
+          />
           
           {/* Text */}
           <text
             x="256"
             y="420"
-            fontSize="36"
+            fontSize="60"
             fontWeight="bold"
-            fill="#E5E7EB"
+            fill="#FFFFFF"
             textAnchor="middle"
             dominantBaseline="middle"
           >
