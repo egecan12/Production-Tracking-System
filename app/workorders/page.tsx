@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { getWorkOrders, updateWorkOrderStatus } from "../lib/database";
 import type { WorkOrder } from "../types";
 import Link from "next/link";
-import { t } from "../lib/translations";
 
 type WorkOrderWithRelations = WorkOrder & {
   customer?: {
@@ -68,7 +67,7 @@ export default function WorkOrdersPage() {
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-semibold text-gray-100">
-              {t("İş Emirleri")}
+              Work Orders
             </h1>
             <div className="flex space-x-2">
               <Link
@@ -83,13 +82,13 @@ export default function WorkOrdersPage() {
                 >
                   <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
                 </svg>
-                {t("Ana Sayfa")}
+                Home Page
               </Link>
               <Link
                 href="/workorders/create"
                 className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
               >
-                {t("Yeni İş Emri Oluştur")}
+                Create New Work Order
               </Link>
             </div>
           </div>
@@ -99,22 +98,22 @@ export default function WorkOrdersPage() {
               <thead className="bg-gray-800">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    {t("Referans No")}
+                    Reference No
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    {t("Müşteri")}
+                    Customer
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    {t("Ürün Tipi")}
+                    Product Type
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    {t("Sipariş Tarihi")}
+                    Order Date
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    {t("Durum")}
+                    Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    {t("İşlemler")}
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -125,7 +124,7 @@ export default function WorkOrdersPage() {
                       colSpan={6}
                       className="px-6 py-4 text-center text-gray-400"
                     >
-                      {t("Hiç iş emri bulunamadı")}
+                      No work orders found
                     </td>
                   </tr>
                 ) : (
@@ -168,7 +167,7 @@ export default function WorkOrdersPage() {
                           href={`/workorders/${order.id}`}
                           className="text-blue-400 hover:text-blue-300 mr-4"
                         >
-                          {t("Görüntüle")}
+                          View
                         </Link>
                         <select
                           value={order.status}
@@ -180,10 +179,10 @@ export default function WorkOrdersPage() {
                           }
                           className="bg-gray-700 border border-gray-600 text-gray-300 rounded px-2 py-1"
                         >
-                          <option value="PENDING">{t("Beklemede")}</option>
-                          <option value="IN_PROGRESS">{t("Devam Ediyor")}</option>
-                          <option value="COMPLETED">{t("Tamamlandı")}</option>
-                          <option value="CANCELLED">{t("İptal Edildi")}</option>
+                          <option value="PENDING">Pending</option>
+                          <option value="IN_PROGRESS">In Progress</option>
+                          <option value="COMPLETED">Completed</option>
+                          <option value="CANCELLED">Cancelled</option>
                         </select>
                       </td>
                     </tr>

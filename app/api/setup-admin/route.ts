@@ -3,32 +3,32 @@ import { supabaseAdmin } from '../../lib/supabaseAdmin';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 
-// BU ENDPOİNT SADECE GELİŞTİRME AMAÇLIDIR!
-// KULLANIMI: /api/setup-admin?key=setup-secret-key
-// Canlı ortamda bu endpoint'i KALDIR veya güçlü bir koruma ekle!
+// THIS ENDPOINT IS FOR DEVELOPMENT PURPOSES ONLY!
+// USAGE: /api/setup-admin?key=setup-secret-key
+// In production, REMOVE this endpoint or add strong protection!
 
 export async function GET(req: Request) {
   try {
-    // Güvenlik kontrolü - basit bir koruma
+    // Security check - simple protection
     const url = new URL(req.url);
     const key = url.searchParams.get('key');
     
-    // Yetkisiz erişim koruması
+    // Unauthorized access protection
     if (key !== 'setup-secret-key') {
-      return NextResponse.json({ error: 'Yetkisiz erişim' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized access' }, { status: 401 });
     }
     
-    // Admin kullanıcısı için bilgiler
+    // Admin user information
     const adminUser = {
       id: uuidv4(),
       username: 'admin',
-      password_hash: await bcrypt.hash('admin123', 10), // Güvenli şifre kullanılmalı!
+      password_hash: await bcrypt.hash('admin123', 10), // Use a secure password!
       role: 'admin',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
     
-    // Mevcut admin kullanıcısını kontrol et
+    // Check existing admin user
     const { data: existingAdmin, error: checkError } = await supabaseAdmin
       .from('system_auth')
       .select('id')
@@ -37,15 +37,15 @@ export async function GET(req: Request) {
       
     if (checkError && checkError.code !== 'PGRST104') {
       return NextResponse.json({ 
-        error: 'Veritabanı kontrol hatası: ' + checkError.message
+        error: 'Database check error: ' + checkError.message
       }, { status: 500 });
     }
     
     let result;
     
-    // Eğer varsa güncelle, yoksa oluştur
+    // If exists update, otherwise create
     if (existingAdmin) {
-      // Mevcut kullanıcıyı güncelle
+      // Update existing user
       const { data, error } = await supabaseAdmin
         .from('system_auth')
         .update({
@@ -59,7 +59,7 @@ export async function GET(req: Request) {
       if (error) throw error;
       result = { action: 'updated', data };
     } else {
-      // Yeni kullanıcı oluştur
+      // Create new user
       const { data, error } = await supabaseAdmin
         .from('system_auth')
         .insert([adminUser])
@@ -71,18 +71,18 @@ export async function GET(req: Request) {
     
     return NextResponse.json({
       success: true,
-      message: 'Admin kullanıcısı kurulumu tamamlandı',
+      message: 'Admin user setup completed',
       details: result,
       loginInfo: {
         username: 'admin',
-        password: 'admin123' // Gerçek uygulamalarda şifreyi yanıtta göstermeyin!
+        password: 'admin123' // Don't show password in response in real applications!
       }
     });
   } catch (error: any) {
-    console.error('Admin kurulum hatası:', error);
+    console.error('Admin setup error:', error);
     return NextResponse.json({
       success: false,
-      message: 'Admin kullanıcısı oluşturulamadı: ' + error.message,
+      message: 'Failed to create admin user: ' + error.message,
       details: process.env.NODE_ENV === 'development' ? error : undefined
     }, { status: 500 });
   }

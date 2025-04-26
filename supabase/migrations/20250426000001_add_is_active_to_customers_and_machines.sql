@@ -1,25 +1,25 @@
--- Customers (Müşteriler) tablosuna is_active alanı ekleniyor
+-- Adding is_active field to Customers table
 ALTER TABLE customers
 ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
 
--- Mevcut tüm müşteriler aktif olarak işaretleniyor
+-- Mark all existing customers as active
 UPDATE customers
 SET is_active = TRUE
 WHERE is_active IS NULL;
 
--- Machines (Makinalar) tablosuna is_active alanı ekleniyor
+-- Adding is_active field to Machines table
 ALTER TABLE machines
 ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
 
--- Mevcut tüm makinalar aktif olarak işaretleniyor
+-- Mark all existing machines as active
 UPDATE machines
 SET is_active = TRUE
 WHERE is_active IS NULL;
 
--- İndeksler oluşturuluyor
+-- Creating indexes
 CREATE INDEX IF NOT EXISTS idx_customers_is_active ON customers(is_active);
 CREATE INDEX IF NOT EXISTS idx_machines_is_active ON machines(is_active);
 
--- Açıklamalar ekleniyor
-COMMENT ON COLUMN customers.is_active IS 'Müşterinin aktif olup olmadığını belirtir. Silme işlemi yerine bu alan FALSE yapılmalıdır.';
-COMMENT ON COLUMN machines.is_active IS 'Makinanın aktif olup olmadığını belirtir. Silme işlemi yerine bu alan FALSE yapılmalıdır.'; 
+-- Adding comments
+COMMENT ON COLUMN customers.is_active IS 'Indicates whether the customer is active. Instead of deletion, this field should be set to FALSE.';
+COMMENT ON COLUMN machines.is_active IS 'Indicates whether the machine is active. Instead of deletion, this field should be set to FALSE.'; 

@@ -19,7 +19,7 @@ export default function CreateEmployeePage() {
     name: "",
     email: "",
     phone: "",
-    is_active: true, // Varsayılan olarak aktif
+    is_active: true, // Active by default
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,21 +34,21 @@ export default function CreateEmployeePage() {
     setSuccess(null);
 
     try {
-      // Validasyon
+      // Validation
       if (!employee.name || !employee.email) {
-        throw new Error("İsim ve email alanları zorunludur.");
+        throw new Error("Name and email fields are required.");
       }
 
-      console.log("Çalışan ekleniyor:", employee);
-      // Yeni veri servisi ile çalışan ekle
+      console.log("Adding employee:", employee);
+      // Add employee with new data service
       const result = await createData<Employee>('employees', {
         name: employee.name,
         email: employee.email,
-        phone: employee.phone || null,
+        phone: employee.phone || undefined,
       });
-      console.log("Çalışan eklendi:", result);
+      console.log("Employee added:", result);
 
-      setSuccess("Çalışan başarıyla eklendi!");
+      setSuccess("Employee successfully added!");
       setEmployee({
         name: "",
         email: "",
@@ -56,16 +56,16 @@ export default function CreateEmployeePage() {
         is_active: true,
       });
 
-      // 2 saniye sonra çalışanlar sayfasına yönlendir
+      // Redirect to employees page after 2 seconds
       setTimeout(() => {
         router.push("/employees");
       }, 2000);
     } catch (err: unknown) {
-      console.error("Çalışan ekleme hatası:", err);
+      console.error("Error adding employee:", err);
       const errorMessage =
         err instanceof Error
           ? err.message
-          : "Çalışan eklenirken bir hata oluştu. Lütfen tekrar deneyin.";
+          : "An error occurred while adding employee. Please try again.";
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -77,7 +77,7 @@ export default function CreateEmployeePage() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold text-gray-100">
-            Yeni Çalışan Ekle
+            Add New Employee
           </h1>
           <div className="flex space-x-2">
             <Link
@@ -92,13 +92,13 @@ export default function CreateEmployeePage() {
               >
                 <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
               </svg>
-              Ana Sayfa
+              Home Page
             </Link>
             <Link
               href="/employees"
               className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-4 rounded"
             >
-              Çalışanlar Listesine Dön
+              Return to Employee List
             </Link>
           </div>
         </div>
@@ -119,7 +119,7 @@ export default function CreateEmployeePage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                İsim *
+                Name *
               </label>
               <input
                 type="text"
@@ -128,13 +128,13 @@ export default function CreateEmployeePage() {
                 onChange={handleInputChange}
                 required
                 className="w-full border border-gray-600 rounded-md shadow-sm py-2 px-3 bg-gray-700 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Çalışanın adını giriniz"
+                placeholder="Enter employee name"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                E-posta Adresi *
+                Email Address *
               </label>
               <input
                 type="email"
@@ -143,13 +143,13 @@ export default function CreateEmployeePage() {
                 onChange={handleInputChange}
                 required
                 className="w-full border border-gray-600 rounded-md shadow-sm py-2 px-3 bg-gray-700 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="ornek@sirket.com"
+                placeholder="example@company.com"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                Telefon Numarası
+                Phone Number
               </label>
               <input
                 type="text"
@@ -157,13 +157,13 @@ export default function CreateEmployeePage() {
                 value={employee.phone || ""}
                 onChange={handleInputChange}
                 className="w-full border border-gray-600 rounded-md shadow-sm py-2 px-3 bg-gray-700 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="İsteğe bağlı"
+                placeholder="Optional"
               />
             </div>
 
             <div className="mb-4">
               <label htmlFor="is_active" className="block mb-1 font-medium">
-                Durum
+                Status
               </label>
               <div className="flex items-center">
                 <input
@@ -175,11 +175,11 @@ export default function CreateEmployeePage() {
                   className="w-5 h-5 mr-2 rounded accent-blue-500 cursor-pointer"
                 />
                 <span className="text-gray-300">
-                  {employee.is_active ? "Aktif" : "Pasif"}
+                  {employee.is_active ? "Active" : "Inactive"}
                 </span>
               </div>
               <p className="text-sm text-gray-400 mt-1">
-                Pasif çalışanlar listede görünmez ve çalışma atamaları yapılamaz.
+                Inactive employees are not visible in the list and cannot be assigned to work.
               </p>
             </div>
 
@@ -189,7 +189,7 @@ export default function CreateEmployeePage() {
                 disabled={isSubmitting}
                 className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
-                {isSubmitting ? "Ekleniyor..." : "Çalışan Ekle"}
+                {isSubmitting ? "Adding..." : "Add Employee"}
               </button>
             </div>
           </form>

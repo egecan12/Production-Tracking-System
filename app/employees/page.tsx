@@ -6,12 +6,12 @@ import Link from "next/link";
 import ConfirmModal from "../components/ConfirmModal";
 import { getData, deleteData } from "../lib/dataService";
 
-// Format telefon numarası fonksiyonu
+// Format phone number function
 const formatPhoneNumber = (phoneNumber: string): string => {
-  // Sadece sayıları al
+  // Get only numbers
   const numbers = phoneNumber.replace(/\D/g, "");
 
-  // Türk telefon formatı: 0(5XX) XXX XX XX
+  // Turkish phone format: 0(5XX) XXX XX XX
   if (numbers.length === 10) {
     return `0(${numbers.slice(0, 3)}) ${numbers.slice(3, 6)} ${numbers.slice(
       6,
@@ -24,7 +24,7 @@ const formatPhoneNumber = (phoneNumber: string): string => {
     )} ${numbers.slice(9, 11)}`;
   }
 
-  // Formatlanamıyorsa olduğu gibi döndür
+  // Return as is if cannot be formatted
   return phoneNumber;
 };
 
@@ -45,13 +45,13 @@ export default function EmployeesPage() {
 
   async function fetchEmployees() {
     try {
-      console.log("Çalışanlar yükleniyor...");
+      console.log("Loading employees...");
       const data = await getData<Employee>("employees", { is_active: true });
-      console.log("Çalışan verileri:", data);
+      console.log("Employee data:", data);
       setEmployees(data || []);
     } catch (error: any) {
-      console.error("Çalışan yükleme hatası:", error);
-      setError("Çalışanlar yüklenemedi: " + error.message);
+      console.error("Employee loading error:", error);
+      setError("Failed to load employees: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -78,9 +78,9 @@ export default function EmployeesPage() {
 
     setDeleteLoading(true);
     try {
-      console.log("Çalışan pasif duruma alınıyor:", deleteModal.employeeId);
+      console.log("Setting employee to inactive:", deleteModal.employeeId);
       await deleteData("employees", { id: deleteModal.employeeId });
-      console.log("Çalışan pasif duruma alındı");
+      console.log("Employee set to inactive");
 
       // Update employees list
       setEmployees(
@@ -94,8 +94,8 @@ export default function EmployeesPage() {
         employeeName: "",
       });
     } catch (error: any) {
-      console.error("Çalışan pasif duruma alma hatası:", error);
-      setError("Çalışan pasif duruma alınamadı: " + error.message);
+      console.error("Error setting employee to inactive:", error);
+      setError("Failed to set employee to inactive: " + error.message);
     } finally {
       setDeleteLoading(false);
     }
@@ -104,7 +104,7 @@ export default function EmployeesPage() {
   return (
     <main className="container mx-auto px-4 py-8 bg-gray-900 min-h-screen">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-100">Çalışan Yönetimi</h1>
+        <h1 className="text-2xl font-bold text-gray-100">Employee Management</h1>
         <div className="flex space-x-2">
           <Link
             href="/"
@@ -118,13 +118,13 @@ export default function EmployeesPage() {
             >
               <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
             </svg>
-            Ana Sayfa
+            Home Page
           </Link>
           <Link
             href="/employees/create"
             className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
           >
-            Yeni Çalışan Ekle
+            Add New Employee
           </Link>
         </div>
       </div>
@@ -136,19 +136,19 @@ export default function EmployeesPage() {
       )}
 
       {loading ? (
-        <div className="text-center py-4 text-gray-300">Yükleniyor...</div>
+        <div className="text-center py-4 text-gray-300">Loading...</div>
       ) : employees.length === 0 ? (
-        <p className="text-gray-400">Henüz kayıtlı işçi bulunmuyor</p>
+        <p className="text-gray-400">No employees registered yet</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full bg-gray-800">
             <thead>
               <tr className="bg-gray-700 text-gray-300 uppercase text-sm leading-normal">
                 <th className="py-3 px-6 text-left">ID</th>
-                <th className="py-3 px-6 text-left">İsim</th>
-                <th className="py-3 px-6 text-left">E-posta</th>
-                <th className="py-3 px-6 text-left">Telefon</th>
-                <th className="py-3 px-6 text-left">İşlemler</th>
+                <th className="py-3 px-6 text-left">Name</th>
+                <th className="py-3 px-6 text-left">Email</th>
+                <th className="py-3 px-6 text-left">Phone</th>
+                <th className="py-3 px-6 text-left">Actions</th>
               </tr>
             </thead>
             <tbody className="text-gray-300 text-sm">
@@ -178,7 +178,7 @@ export default function EmployeesPage() {
                       >
                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                       </svg>
-                      Düzenle
+                      Edit
                     </Link>
                     <button
                       onClick={() => confirmDelete(employee.id, employee.name)}
@@ -196,7 +196,7 @@ export default function EmployeesPage() {
                           clipRule="evenodd"
                         />
                       </svg>
-                      Sil
+                      Delete
                     </button>
                   </td>
                 </tr>
@@ -208,10 +208,10 @@ export default function EmployeesPage() {
 
       <ConfirmModal
         isOpen={deleteModal.isOpen}
-        title="Çalışanı Pasif Duruma Al"
-        message={`"${deleteModal.employeeName}" isimli çalışanı pasif duruma almak istediğinizden emin misiniz? Bu işlem daha sonra geri alınabilir.`}
-        confirmText="Evet, Pasif Duruma Al"
-        cancelText="İptal"
+        title="Set Employee to Inactive"
+        message={`Are you sure you want to set the employee "${deleteModal.employeeName}" to inactive? This action can be reversed later.`}
+        confirmText="Yes, Set to Inactive"
+        cancelText="Cancel"
         onConfirm={handleDelete}
         onCancel={cancelDelete}
         isLoading={deleteLoading}

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { getCustomers } from "../lib/database";
-import { t } from "../lib/translations";
 
 interface Customer {
   id: string;

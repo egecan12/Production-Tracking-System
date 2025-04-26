@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import LoginLogo from "../../components/LoginLogo";
-import { t } from "../../lib/translations";
 
 export default function SystemLoginPage() {
   const [username, setUsername] = useState("");
@@ -18,11 +17,11 @@ export default function SystemLoginPage() {
     setLoading(true);
 
     try {
-      console.log("Login form gönderiliyor:", { username });
+      console.log("Submitting login form:", { username });
       
-      // Minimal validasyon
+      // Minimal validation
       if (!username.trim() || !password) {
-        setError("Kullanıcı adı ve şifre gereklidir.");
+        setError("Username and password are required.");
         setLoading(false);
         return;
       }
@@ -36,7 +35,7 @@ export default function SystemLoginPage() {
       });
 
       const data = await response.json();
-      console.log("Login API yanıtı:", { status: response.status, success: data.success });
+      console.log("Login API response:", { status: response.status, success: data.success });
 
       if (response.ok && data.success) {
         // Save login state and user info to localStorage
@@ -45,21 +44,21 @@ export default function SystemLoginPage() {
 
         // Save user role
         if (data.userData && data.userData.role) {
-          console.log("Login başarılı, rol kaydediliyor:", data.userData.role);
+          console.log("Login successful, saving role:", data.userData.role);
           localStorage.setItem("userRole", data.userData.role);
         } else {
-          console.log("Login başarılı fakat rol bilgisi yok:", data.userData);
+          console.log("Login successful but no role information:", data.userData);
         }
 
         // Redirect to home page
         router.push("/");
       } else {
-        console.error("Login başarısız:", data);
-        setError(data.message || "Giriş işlemi başarısız oldu. Lütfen bilgilerinizi kontrol edin.");
+        console.error("Login failed:", data);
+        setError(data.message || "Login failed. Please check your credentials.");
       }
     } catch (err: any) {
-      console.error("Login hatası:", err);
-      setError("Giriş işlemi sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin. Hata detayı: " + (err.message || ""));
+      console.error("Login error:", err);
+      setError("An error occurred during login. Please try again later. Error details: " + (err.message || ""));
     } finally {
       setLoading(false);
     }
@@ -73,7 +72,7 @@ export default function SystemLoginPage() {
         </div>
 
         <h1 className="text-xl font-semibold text-center text-white mb-6">
-          {t("Sistem Girişi")}
+          System Login
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -82,7 +81,7 @@ export default function SystemLoginPage() {
               htmlFor="username"
               className="block text-sm font-medium text-gray-300"
             >
-              {t("Kullanıcı Adı")}
+              Username
             </label>
             <div className="mt-1">
               <input
@@ -93,7 +92,7 @@ export default function SystemLoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder={t("Kullanıcı adınızı girin")}
+                placeholder="Enter your username"
               />
             </div>
           </div>
@@ -103,7 +102,7 @@ export default function SystemLoginPage() {
               htmlFor="password"
               className="block text-sm font-medium text-gray-300"
             >
-              {t("Şifre")}
+              Password
             </label>
             <div className="mt-1">
               <input
@@ -114,7 +113,7 @@ export default function SystemLoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder={t("Şifrenizi girin")}
+                placeholder="Enter your password"
               />
             </div>
           </div>
@@ -132,7 +131,7 @@ export default function SystemLoginPage() {
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ cursor: "pointer" }}
             >
-              {loading ? t("Giriş Yapılıyor...") : t("Giriş Yap")}
+              {loading ? "Logging in..." : "Login"}
             </button>
           </div>
         </form>

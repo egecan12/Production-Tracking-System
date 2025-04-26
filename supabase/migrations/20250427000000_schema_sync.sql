@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS "public"."customers" (
 ALTER TABLE "public"."customers" OWNER TO "postgres";
 
 
-COMMENT ON COLUMN "public"."customers"."is_active" IS 'Müşterinin aktif olup olmadığını belirtir. Silme işlemi yerine bu alan FALSE yapılmalıdır.';
+COMMENT ON COLUMN "public"."customers"."is_active" IS 'Indicates whether the customer is active. Instead of deletion, this field should be set to FALSE.';
 
 
 
@@ -128,7 +128,7 @@ CREATE TABLE IF NOT EXISTS "public"."employees" (
 ALTER TABLE "public"."employees" OWNER TO "postgres";
 
 
-COMMENT ON COLUMN "public"."employees"."is_active" IS 'Çalışanın aktif olup olmadığını belirtir. Silme işlemi yerine bu alan FALSE yapılmalıdır.';
+COMMENT ON COLUMN "public"."employees"."is_active" IS 'Indicates whether the employee is active. Instead of deletion, this field should be set to FALSE.';
 
 
 
@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS "public"."machines" (
 ALTER TABLE "public"."machines" OWNER TO "postgres";
 
 
-COMMENT ON COLUMN "public"."machines"."is_active" IS 'Makinanın aktif olup olmadığını belirtir. Silme işlemi yerine bu alan FALSE yapılmalıdır.';
+COMMENT ON COLUMN "public"."machines"."is_active" IS 'Indicates whether the machine is active. Instead of deletion, this field should be set to FALSE.';
 
 
 

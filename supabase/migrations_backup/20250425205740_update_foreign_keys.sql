@@ -5,4 +5,4 @@ ADD CONSTRAINT work_orders_customer_id_fkey
 FOREIGN KEY (customer_id) REFERENCES customers(id) 
 ON DELETE SET NULL ON UPDATE CASCADE;
 
--- Aynı şekilde diğer tablolar için de yapın
+-- Do the same for other tables as well

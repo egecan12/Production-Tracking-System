@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { t } from "../lib/translations";
 
 export default function AccessDenied() {
   return (
@@ -20,18 +19,17 @@ export default function AccessDenied() {
           />
         </svg>
 
-        <h2 className="text-xl font-bold text-white mb-2">{t("Erişim Reddedildi")}</h2>
+        <h2 className="text-xl font-bold text-white mb-2">Access Denied</h2>
 
         <p className="text-gray-300 mb-6">
-          {t("Bu sayfayı görüntülemek için gerekli izinlere sahip değilsiniz. Lütfen")}
-          {" "}system administrator.
+          You don't have the necessary permissions to view this page. Please contact the system administrator.
         </p>
 
         <Link
           href="/"
           className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-white font-medium transition-colors"
         >
-          {t("Ana Sayfa")}
+          Home Page
         </Link>
       </div>
     </div>

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { t } from "../lib/translations";
 
 export default function LogoutButton() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -12,7 +11,7 @@ export default function LogoutButton() {
     setIsLoggingOut(true);
     
     try {
-      // API'ye logout isteği gönder
+      // Send logout request to API
       const response = await fetch('/api/auth/logout', {
         method: 'POST',
         headers: {
@@ -22,10 +21,10 @@ export default function LogoutButton() {
       
       // Clear all authentication data from localStorage
       if (typeof window !== "undefined") {
-        // Sistem auth token'ı
+        // System auth token
         localStorage.removeItem("systemAuth");
         
-        // Diğer kullanıcı bilgileri
+        // Other user information
         localStorage.removeItem("token");
         localStorage.removeItem("username");
         localStorage.removeItem("userRole");
@@ -34,12 +33,12 @@ export default function LogoutButton() {
         console.log("Logged out, all auth tokens cleared");
       }
       
-      // Sistem giriş sayfasına yönlendir
+      // Redirect to system login page
       router.push("/auth/system-login");
     } catch (error) {
       console.error("Logout error:", error);
       
-      // Hata olsa bile her durumda token'ları temizle ve giriş sayfasına yönlendir
+      // Clear tokens and redirect to login page even if there's an error
       localStorage.removeItem("systemAuth");
       localStorage.removeItem("username");
       localStorage.removeItem("userRole");
@@ -57,7 +56,7 @@ export default function LogoutButton() {
       className="px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
       style={{ cursor: "pointer" }}
     >
-      {isLoggingOut ? t("Çıkış yapılıyor...") : t("Çıkış")}
+      {isLoggingOut ? "Logging out..." : "Logout"}
     </button>
   );
 }

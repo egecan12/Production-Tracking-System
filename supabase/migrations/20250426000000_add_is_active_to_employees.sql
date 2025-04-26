@@ -1,14 +1,14 @@
--- Employees tablosuna is_active alanı ekleniyor
+-- Adding is_active field to Employees table
 ALTER TABLE employees
 ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
 
--- Mevcut tüm çalışanlar aktif olarak işaretleniyor
+-- Mark all existing employees as active
 UPDATE employees
 SET is_active = TRUE
 WHERE is_active IS NULL;
 
--- is_active alanı için açıklama ekleniyor
-COMMENT ON COLUMN employees.is_active IS 'Çalışanın aktif olup olmadığını belirtir. Silme işlemi yerine bu alan FALSE yapılmalıdır.';
+-- Adding comment for is_active field
+COMMENT ON COLUMN employees.is_active IS 'Indicates whether the employee is active. Instead of deletion, this field should be set to FALSE.';
 
--- İleriki sorgularda sadece aktif çalışanları getirmek için index ekleniyor
+-- Adding index to efficiently query only active employees in future queries
 CREATE INDEX IF NOT EXISTS idx_employees_is_active ON employees(is_active); 

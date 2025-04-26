@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { t } from "../lib/translations";
 import { getData } from "../lib/dataService";
 
 interface Customer {
@@ -39,17 +38,17 @@ export default function OrderList() {
     async function fetchOrders() {
       try {
         setLoading(true);
-        console.log("Siparişler dataService ile yükleniyor...");
+        console.log("Loading orders with dataService...");
         
-        // dataService kullanarak siparişleri getir
+        // Get orders using dataService
         const data = await getData<Order>("orders");
-        console.log("Sipariş verileri:", data);
+        console.log("Order data:", data);
         
         setOrders(data || []);
         setError("");
       } catch (err: any) {
-        console.error("Sipariş yükleme hatası:", err);
-        setError(err.message || "Siparişler yüklenirken bir hata oluştu.");
+        console.error("Error loading orders:", err);
+        setError(err.message || "An error occurred while loading orders.");
       } finally {
         setLoading(false);
       }
@@ -80,13 +79,13 @@ export default function OrderList() {
   const getStatusText = (status: string) => {
     switch (status) {
       case "pending":
-        return t("Beklemede");
+        return "Pending";
       case "in_progress":
-        return t("Üretimde");
+        return "In Production";
       case "completed":
-        return t("Tamamlandı");
+        return "Completed";
       case "cancelled":
-        return t("İptal Edildi");
+        return "Cancelled";
       default:
         return status;
     }
@@ -124,28 +123,28 @@ export default function OrderList() {
         <thead className="bg-gray-900">
           <tr>
             <th className="py-3 px-4 text-left text-sm font-medium text-gray-300">
-              {t("Sipariş No")}
+              Order Number
             </th>
             <th className="py-3 px-4 text-left text-sm font-medium text-gray-300">
-              {t("Müşteri")}
+              Customer
             </th>
             <th className="py-3 px-4 text-left text-sm font-medium text-gray-300">
-              {t("Ürün Cinsi")}
+              Product Type
             </th>
             <th className="py-3 px-4 text-left text-sm font-medium text-gray-300">
               Dimensions
             </th>
             <th className="py-3 px-4 text-left text-sm font-medium text-gray-300">
-              {t("Ağırlık")}
+              Weight
             </th>
             <th className="py-3 px-4 text-left text-sm font-medium text-gray-300">
-              {t("Teslimat Haftası")}
+              Delivery Week
             </th>
             <th className="py-3 px-4 text-left text-sm font-medium text-gray-300">
-              {t("Üretim Başlangıcı")}
+              Production Start
             </th>
             <th className="py-3 px-4 text-left text-sm font-medium text-gray-300">
-              {t("Durum")}
+              Status
             </th>
           </tr>
         </thead>
