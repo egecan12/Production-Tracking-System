@@ -25,6 +25,11 @@ A comprehensive production management system for manufacturing companies, focuse
 
 Visit [ProdTrack Demo](https://production-tracking-system-b4f4jp3eq.vercel.app/auth/system-login) to see the application in action.
 
+use these credencials to login
+
+username: DemoUser
+password: DemoPassword.1234
+
 ## 💻 Setup Instructions
 
 1. Clone the repository:
