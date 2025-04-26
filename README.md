@@ -9,7 +9,7 @@
 A comprehensive production management system for manufacturing companies, focused on order management, work orders, machine monitoring, and wire production calculation.
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/yourusername/production-tracking-system/main/public/favicon.svg" alt="ProdTrack Logo" width="120" height="120">
+  ![image](https://github.com/user-attachments/assets/09d698d1-e166-4925-85b2-dc4f6e57d1eb)
 </div>
 
 </div>
@@ -72,6 +72,10 @@ npm run dev
 - PostgreSQL via Supabase
 - Row Level Security (RLS) policies
 
+## ER Diagram
+
+![473E8664-106E-4979-93F5-45101839007E](https://github.com/user-attachments/assets/50150d23-adb3-4d7d-a112-956e95f3c443)
+
 ## 📊 Data Service API
 
 ```typescript
@@ -101,6 +105,7 @@ await updateData('employees',
 import { deleteData } from "./lib/dataService";
 await deleteData('employees', { id: '123e4567-e89b-12d3-a456-426614174000' });
 ```
+
 
 ## 🔒 Privacy & Security
 
