@@ -93,7 +93,7 @@ export default function WorkOrderDetailPage() {
   if (loading)
     return (
       <div className="min-h-screen bg-gray-900 p-6 text-gray-300">
-        İş emri detayları yükleniyor...
+        Loading work order details...
       </div>
     );
   if (error)
@@ -103,7 +103,7 @@ export default function WorkOrderDetailPage() {
   if (!workOrder)
     return (
       <div className="min-h-screen bg-gray-900 p-6 text-gray-300">
-        İş emri bulunamadı
+        Work order not found
       </div>
     );
 
@@ -113,7 +113,7 @@ export default function WorkOrderDetailPage() {
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-semibold text-gray-100">
-              İş Emri{" "}
+              Work Order{" "}
               {workOrder.ref_no
                 ? `#${workOrder.ref_no}`
                 : workOrderId.slice(0, 8)}
@@ -123,7 +123,7 @@ export default function WorkOrderDetailPage() {
                 href="/workorders"
                 className="bg-gray-700 text-gray-300 py-2 px-4 rounded hover:bg-gray-600"
               >
-                İş Emirlerine Dön
+                Return to Work Orders
               </Link>
               <select
                 value={workOrder.status}
@@ -132,10 +132,10 @@ export default function WorkOrderDetailPage() {
                 }
                 className="bg-gray-700 border border-gray-600 text-gray-300 rounded px-4 py-2"
               >
-                <option value="PENDING">Beklemede</option>
-                <option value="IN_PROGRESS">Devam Ediyor</option>
-                <option value="COMPLETED">Tamamlandı</option>
-                <option value="CANCELLED">İptal Edildi</option>
+                <option value="PENDING">Pending</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="CANCELLED">Cancelled</option>
               </select>
             </div>
           </div>
@@ -161,7 +161,7 @@ export default function WorkOrderDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-800 p-6 rounded-lg shadow border border-gray-700">
               <h2 className="text-xl font-semibold text-gray-200 mb-4">
-                Müşteri Bilgileri
+                Customer Information
               </h2>
               <dl className="space-y-2">
                 <div className="grid grid-cols-3 gap-4">
@@ -185,7 +185,7 @@ export default function WorkOrderDetailPage() {
 
             <div className="bg-gray-800 p-6 rounded-lg shadow border border-gray-700">
               <h2 className="text-xl font-semibold text-gray-200 mb-4">
-                Sipariş Bilgileri
+                Order Information
               </h2>
               <dl className="space-y-2">
                 <div className="grid grid-cols-3 gap-4">
@@ -222,7 +222,7 @@ export default function WorkOrderDetailPage() {
           {/* Work Order Details */}
           <div className="bg-gray-800 p-6 rounded-lg shadow mb-6 border border-gray-700">
             <h2 className="text-xl font-semibold text-gray-200 mb-4">
-              Sipariş Özellikleri
+              Order Specifications
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <dl className="space-y-2">
@@ -286,12 +286,12 @@ export default function WorkOrderDetailPage() {
             estimatedTime !== null && (
               <div className="bg-gray-800 p-6 rounded-lg shadow mb-6 border border-gray-700">
                 <h2 className="text-xl font-semibold text-gray-200 mb-4">
-                  Üretim Metrikleri
+                  Production Metrics
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="p-4 bg-gray-700 rounded border border-gray-600">
                     <h3 className="text-base font-medium text-gray-300 mb-2">
-                      Üretim Verimliliği
+                      Production Efficiency
                     </h3>
                     <p
                       className={`text-2xl font-bold ${
@@ -341,7 +341,7 @@ export default function WorkOrderDetailPage() {
           {workOrder.spools && workOrder.spools.length > 0 && (
             <div className="bg-gray-800 p-6 rounded-lg shadow mb-6 border border-gray-700">
               <h2 className="text-xl font-semibold text-gray-200 mb-4">
-                Makaralar
+                Spools
               </h2>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-700">
@@ -400,7 +400,7 @@ export default function WorkOrderDetailPage() {
           {workOrder.production_specs && (
             <div className="bg-gray-800 p-6 rounded-lg shadow border border-gray-700">
               <h2 className="text-xl font-semibold text-gray-200 mb-4">
-                Üretim Özellikleri
+                Production Specifications
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <dl className="space-y-2">

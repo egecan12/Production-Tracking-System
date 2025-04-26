@@ -25,16 +25,16 @@ export default function AddMachinePage() {
     setHasAccess(canAdd);
   }, []);
 
-  // Erişim kontrolü
+  // Access control
   if (hasAccess === false) {
     return <AccessDenied />;
   }
 
-  // Sayfa yüklenirken erişim kontrolü yapılıyor
+  // Access check is performed while the page is loading
   if (hasAccess === null) {
     return (
       <div className="text-center py-8 text-gray-300 bg-gray-900 min-h-screen">
-        Yükleniyor...
+        Loading...
       </div>
     );
   }
@@ -43,7 +43,7 @@ export default function AddMachinePage() {
     e.preventDefault();
 
     if (!machineName) {
-      setMessage("Lütfen makine adını giriniz.");
+      setMessage("Please enter a machine name.");
       return;
     }
 
@@ -51,7 +51,7 @@ export default function AddMachinePage() {
     setMessage("");
 
     try {
-      // Supabase'e yeni makine ekleme - ID otomatik oluşturulacak
+      // Add new machine to Supabase - ID will be generated automatically
       const { error } = await supabase
         .from("machines")
         .insert([
@@ -67,15 +67,15 @@ export default function AddMachinePage() {
 
       if (error) throw error;
 
-      setMessage("Makine başarıyla eklendi!");
-      // Makine listesine yönlendir
+      setMessage("Machine added successfully!");
+      // Redirect to machine list
       setTimeout(() => {
         router.push("/machines");
       }, 1500);
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
-      setMessage(`Hata: ${errorMessage}`);
+      setMessage(`Error: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -89,7 +89,7 @@ export default function AddMachinePage() {
           className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-medium py-2 px-4 rounded inline-flex items-center"
         >
           <span>&#8592;</span>
-          <span className="ml-2">Makinelere Dön</span>
+          <span className="ml-2">Return to Machines</span>
         </Link>
       </div>
 
@@ -118,7 +118,7 @@ export default function AddMachinePage() {
               <circle cx="52" cy="32" r="1.5" fill="currentColor" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-100">Yeni Makine Ekle</h1>
+          <h1 className="text-2xl font-bold text-gray-100">Add New Machine</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -127,7 +127,7 @@ export default function AddMachinePage() {
               htmlFor="machineName"
               className="block text-sm font-medium text-gray-300 mb-1"
             >
-              Makine Adı
+              Machine Name
             </label>
             <input
               id="machineName"
@@ -135,7 +135,7 @@ export default function AddMachinePage() {
               value={machineName}
               onChange={(e) => setMachineName(e.target.value)}
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Makine adı giriniz"
+              placeholder="Enter machine name"
             />
           </div>
 
@@ -144,7 +144,7 @@ export default function AddMachinePage() {
               htmlFor="model"
               className="block text-sm font-medium text-gray-300 mb-1"
             >
-              Makine Tipi / Modeli
+              Machine Type / Model
             </label>
             <input
               id="model"
@@ -152,7 +152,7 @@ export default function AddMachinePage() {
               value={model}
               onChange={(e) => setModel(e.target.value)}
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Makine tipi/modeli (opsiyonel)"
+              placeholder="Machine type/model (optional)"
             />
           </div>
 
@@ -161,7 +161,7 @@ export default function AddMachinePage() {
               htmlFor="number"
               className="block text-sm font-medium text-gray-300 mb-1"
             >
-              Numara
+              Number
             </label>
             <input
               id="number"
@@ -169,7 +169,7 @@ export default function AddMachinePage() {
               value={number}
               onChange={(e) => setNumber(e.target.value)}
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Makine numarası (opsiyonel)"
+              placeholder="Machine number (optional)"
             />
           </div>
 
@@ -178,7 +178,7 @@ export default function AddMachinePage() {
               htmlFor="location"
               className="block text-sm font-medium text-gray-300 mb-1"
             >
-              Konum
+              Location
             </label>
             <input
               id="location"
@@ -186,7 +186,7 @@ export default function AddMachinePage() {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Makine konumu (opsiyonel)"
+              placeholder="Machine location (optional)"
             />
           </div>
 
@@ -195,7 +195,7 @@ export default function AddMachinePage() {
               htmlFor="status"
               className="block text-sm font-medium text-gray-300 mb-1"
             >
-              Durum
+              Status
             </label>
             <select
               id="status"
@@ -207,9 +207,9 @@ export default function AddMachinePage() {
               }
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="active">Aktif</option>
-              <option value="inactive">Pasif</option>
-              <option value="maintenance">Bakımda</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="maintenance">Maintenance</option>
             </select>
           </div>
 
@@ -241,39 +241,43 @@ export default function AddMachinePage() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Ekleniyor...
+                  Adding...
                 </>
               ) : (
                 <>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-5 w-5 mr-2"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                   >
                     <path
-                      fillRule="evenodd"
-                      d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                      clipRule="evenodd"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                     />
                   </svg>
-                  Makine Ekle
+                  Add Machine
                 </>
               )}
             </button>
+          </div>
 
-            {message && (
-              <div
-                className={`mt-4 p-3 rounded ${
-                  message.includes("Hata")
-                    ? "bg-red-900 text-red-300"
-                    : "bg-green-900 text-green-300"
-                }`}
+          {message && (
+            <div className="mt-4 p-3 rounded-md bg-gray-700 text-center">
+              <span
+                className={
+                  message.startsWith("Error")
+                    ? "text-red-400"
+                    : "text-green-400"
+                }
               >
                 {message}
-              </div>
-            )}
-          </div>
+              </span>
+            </div>
+          )}
         </form>
       </div>
     </main>

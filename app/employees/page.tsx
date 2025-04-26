@@ -11,17 +11,11 @@ const formatPhoneNumber = (phoneNumber: string): string => {
   // Get only numbers
   const numbers = phoneNumber.replace(/\D/g, "");
 
-  // Turkish phone format: 0(5XX) XXX XX XX
+  // International phone format
   if (numbers.length === 10) {
-    return `0(${numbers.slice(0, 3)}) ${numbers.slice(3, 6)} ${numbers.slice(
-      6,
-      8
-    )} ${numbers.slice(8, 10)}`;
+    return `+90 ${numbers.slice(0, 3)} ${numbers.slice(3, 6)} ${numbers.slice(6)}`;
   } else if (numbers.length === 11 && numbers.startsWith("0")) {
-    return `0(${numbers.slice(1, 4)}) ${numbers.slice(4, 7)} ${numbers.slice(
-      7,
-      9
-    )} ${numbers.slice(9, 11)}`;
+    return `+90 ${numbers.slice(1, 4)} ${numbers.slice(4, 7)} ${numbers.slice(7)}`;
   }
 
   // Return as is if cannot be formatted

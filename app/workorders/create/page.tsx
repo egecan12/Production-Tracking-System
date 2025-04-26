@@ -20,9 +20,10 @@ export default function CreateWorkOrderPage() {
     Omit<Customer, "id" | "created_at" | "updated_at">
   >({
     name: "",
-    companyName: "",
-    contactEmail: "",
-    phoneNumber: "",
+    company_name: "",
+    contact_email: "",
+    phone_number: "",
+    is_active: true,
   });
 
   // Work order form data
@@ -108,9 +109,10 @@ export default function CreateWorkOrderPage() {
       // Convert to match API expectations
       const customerData = {
         name: customer.name,
-        company_name: customer.companyName,
-        contact_email: customer.contactEmail,
-        phone_number: customer.phoneNumber,
+        company_name: customer.company_name,
+        contact_email: customer.contact_email,
+        phone_number: customer.phone_number,
+        is_active: customer.is_active,
       };
 
       const workOrderData = {
@@ -165,7 +167,7 @@ export default function CreateWorkOrderPage() {
     <main className="min-h-screen bg-gray-900">
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-semibold text-gray-100 mb-6">
-          Yeni İş Emri Oluştur
+          New Work Order
         </h1>
 
         {error && (
@@ -178,17 +180,17 @@ export default function CreateWorkOrderPage() {
           {/* Customer Information */}
           <div className="bg-gray-800 p-6 rounded-lg shadow border border-gray-700">
             <h2 className="text-xl font-semibold text-gray-200 mb-4">
-              Müşteri Bilgileri
+              Customer Information
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  İsim *
+                  Full Name *
                 </label>
                 <input
                   type="text"
                   name="name"
-                  value={customer.name}
+                  value={customer.name || ""}
                   onChange={handleCustomerChange}
                   required
                   className="mt-1 block w-full border border-gray-600 rounded-md shadow-sm py-2 px-3 bg-gray-700 text-gray-300"
@@ -196,12 +198,12 @@ export default function CreateWorkOrderPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Şirket Adı
+                  Company Name
                 </label>
                 <input
                   type="text"
-                  name="companyName"
-                  value={customer.companyName || ""}
+                  name="company_name"
+                  value={customer.company_name || ""}
                   onChange={handleCustomerChange}
                   className="mt-1 block w-full border border-gray-600 rounded-md shadow-sm py-2 px-3 bg-gray-700 text-gray-300"
                 />
@@ -212,21 +214,22 @@ export default function CreateWorkOrderPage() {
                 </label>
                 <input
                   type="email"
-                  name="contactEmail"
-                  value={customer.contactEmail || ""}
+                  name="contact_email"
+                  value={customer.contact_email || ""}
                   onChange={handleCustomerChange}
                   className="mt-1 block w-full border border-gray-600 rounded-md shadow-sm py-2 px-3 bg-gray-700 text-gray-300"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Telefon Numarası
+                  Phone Number *
                 </label>
                 <input
-                  type="text"
-                  name="phoneNumber"
-                  value={customer.phoneNumber || ""}
+                  type="tel"
+                  name="phone_number"
+                  value={customer.phone_number || ""}
                   onChange={handleCustomerChange}
+                  required
                   className="mt-1 block w-full border border-gray-600 rounded-md shadow-sm py-2 px-3 bg-gray-700 text-gray-300"
                 />
               </div>
@@ -236,24 +239,12 @@ export default function CreateWorkOrderPage() {
           {/* Work Order Details */}
           <div className="bg-gray-800 p-6 rounded-lg shadow border border-gray-700">
             <h2 className="text-xl font-semibold text-gray-200 mb-4">
-              Sipariş Bilgileri
+              Order Information
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Referans Numarası
-                </label>
-                <input
-                  type="text"
-                  name="refNo"
-                  value={workOrder.refNo || ""}
-                  onChange={handleWorkOrderChange}
-                  className="mt-1 block w-full border border-gray-600 rounded-md shadow-sm py-2 px-3 bg-gray-700 text-gray-300"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300">
-                  Ürün Tipi *
+                  Work Order Title *
                 </label>
                 <input
                   type="text"
@@ -266,7 +257,7 @@ export default function CreateWorkOrderPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Malzeme Tipi *
+                  Material Type *
                 </label>
                 <input
                   type="text"
@@ -279,7 +270,20 @@ export default function CreateWorkOrderPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Toplam Sipariş Ağırlığı (kg) *
+                  Reference Number *
+                </label>
+                <input
+                  type="text"
+                  name="refNo"
+                  value={workOrder.refNo || ""}
+                  onChange={handleWorkOrderChange}
+                  required
+                  className="mt-1 block w-full border border-gray-600 rounded-md shadow-sm py-2 px-3 bg-gray-700 text-gray-300"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300">
+                  Total Order Weight (kg) *
                 </label>
                 <input
                   type="number"
@@ -294,7 +298,7 @@ export default function CreateWorkOrderPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Toplam Sipariş Uzunluğu (m) *
+                  Total Order Length (m) *
                 </label>
                 <input
                   type="number"
@@ -309,7 +313,7 @@ export default function CreateWorkOrderPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Genişlik (mm) *
+                  Width (mm) *
                 </label>
                 <input
                   type="number"
@@ -324,7 +328,7 @@ export default function CreateWorkOrderPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Kalınlık (mm) *
+                  Thickness (mm) *
                 </label>
                 <input
                   type="number"
@@ -343,12 +347,12 @@ export default function CreateWorkOrderPage() {
           {/* Spool Details */}
           <div className="bg-gray-800 p-6 rounded-lg shadow border border-gray-700">
             <h2 className="text-xl font-semibold text-gray-200 mb-4">
-              Makaralar
+              Spool Details
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Makaralar Numarası *
+                  Spool Number *
                 </label>
                 <input
                   type="number"
@@ -361,7 +365,7 @@ export default function CreateWorkOrderPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Ham Ağırlık (kg) *
+                  Raw Weight (kg) *
                 </label>
                 <input
                   type="number"
@@ -376,7 +380,7 @@ export default function CreateWorkOrderPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Uzunluk (m) *
+                  Length (m) *
                 </label>
                 <input
                   type="number"
@@ -391,7 +395,7 @@ export default function CreateWorkOrderPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Çap (mm) *
+                  Diameter (mm) *
                 </label>
                 <input
                   type="number"
@@ -406,7 +410,7 @@ export default function CreateWorkOrderPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Makaralar Tipi *
+                  Spool Type *
                 </label>
                 <input
                   type="text"
@@ -419,7 +423,7 @@ export default function CreateWorkOrderPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Yalıtım Ağırlığı (kg)
+                  Insulation Weight (kg)
                 </label>
                 <input
                   type="number"
@@ -437,12 +441,12 @@ export default function CreateWorkOrderPage() {
           {/* Production Specifications */}
           <div className="bg-gray-800 p-6 rounded-lg shadow border border-gray-700">
             <h2 className="text-xl font-semibold text-gray-200 mb-4">
-              Üretim Özellikleri
+              Production Specifications
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Kağıt Tipi
+                  Paper Type
                 </label>
                 <input
                   type="text"
@@ -454,7 +458,7 @@ export default function CreateWorkOrderPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Yalıtım Kalınlığı (mm) *
+                  Insulation Thickness (mm) *
                 </label>
                 <input
                   type="number"
@@ -469,7 +473,7 @@ export default function CreateWorkOrderPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Üretim Hızı (m/dk) *
+                  Production Speed (m/min) *
                 </label>
                 <input
                   type="number"
@@ -484,7 +488,7 @@ export default function CreateWorkOrderPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Hat Hızı (m/dk) *
+                  Line Speed (m/min) *
                 </label>
                 <input
                   type="number"
@@ -499,7 +503,7 @@ export default function CreateWorkOrderPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Kağıt Katmanları
+                  Paper Layers
                 </label>
                 <input
                   type="number"
@@ -511,7 +515,7 @@ export default function CreateWorkOrderPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Tolerans Kalınlığı (mm) *
+                  Thickness Tolerance (mm) *
                 </label>
                 <input
                   type="number"
@@ -526,7 +530,7 @@ export default function CreateWorkOrderPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300">
-                  Tolerans Genişliği (mm) *
+                  Width Tolerance (mm) *
                 </label>
                 <input
                   type="number"
@@ -548,14 +552,14 @@ export default function CreateWorkOrderPage() {
               onClick={() => router.back()}
               className="py-2 px-4 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-300 hover:bg-gray-700"
             >
-              İptal
+              Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:opacity-70"
             >
-              {isSubmitting ? "Oluşturuluyor..." : "İş Emri Oluştur"}
+              {isSubmitting ? "Creating..." : "Create Work Order"}
             </button>
           </div>
         </form>

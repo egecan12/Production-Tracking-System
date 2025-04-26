@@ -4,77 +4,77 @@ import bcrypt from 'bcryptjs';
 
 export async function POST(req: Request) {
   try {
-    console.log('Login işlemi başladı');
+    console.log('Login process started');
     const { username, password } = await req.json();
-    console.log('Giriş bilgileri alındı:', { username, passwordLength: password?.length });
+    console.log('Login credentials received:', { username, passwordLength: password?.length });
 
     if (!username || !password) {
-      console.log('Eksik giriş bilgileri');
+      console.log('Missing login credentials');
       return NextResponse.json(
-        { success: false, message: 'Kullanıcı adı ve şifre gereklidir.' },
+        { success: false, message: 'Username and password are required.' },
         { status: 400 }
       );
     }
 
-    // Veritabanından kullanıcı bilgilerini al - service_role key ile
-    console.log('Supabase sorgusu yapılıyor:', username);
+    // Get user information from database using service_role key
+    console.log('Executing Supabase query:', username);
     const { data, error } = await supabaseAdmin
       .from('system_auth')
       .select('id, username, password_hash, role')
       .eq('username', username)
       .single();
 
-    console.log('Supabase sorgu sonucu:', { data: !!data, error });
+    console.log('Supabase query result:', { data: !!data, error });
 
     if (error) {
-      console.error('Kullanıcı bilgileri alınamadı:', error);
+      console.error('Could not retrieve user information:', error);
       
-      // RLS veya tablo hatası durumunda
+      // RLS or table error
       if (error.code === 'PGRST116') {
         return NextResponse.json(
-          { success: false, message: 'Veritabanı erişim hatası. RLS politikaları kontrol edilmeli.' },
+          { success: false, message: 'Database access error. RLS policies should be checked.' },
           { status: 403 }
         );
       }
       
-      // Kullanıcı bulunamadı
+      // User not found
       if (error.code === 'PGRST104') {
         return NextResponse.json(
-          { success: false, message: 'Kullanıcı adı veya şifre hatalı.' },
+          { success: false, message: 'Username or password is incorrect.' },
           { status: 401 }
         );
       }
       
       return NextResponse.json(
-        { success: false, message: 'Veritabanı hatası: ' + error.message },
+        { success: false, message: 'Database error: ' + error.message },
         { status: 500 }
       );
     }
 
     if (!data || !data.password_hash) {
-      console.error('Kullanıcı şifre hash\'i bulunamadı');
+      console.error('User password hash not found');
       return NextResponse.json(
-        { success: false, message: 'Kullanıcı adı veya şifre hatalı.' },
+        { success: false, message: 'Username or password is incorrect.' },
         { status: 401 }
       );
     }
 
-    // Şifre doğrulaması
-    console.log('Şifre doğrulaması yapılıyor');
+    // Password validation
+    console.log('Validating password');
     const isPasswordValid = await bcrypt.compare(password, data.password_hash);
-    console.log('Şifre doğrulama sonucu:', isPasswordValid);
+    console.log('Password validation result:', isPasswordValid);
 
     if (!isPasswordValid) {
       return NextResponse.json(
-        { success: false, message: 'Kullanıcı adı veya şifre hatalı.' },
+        { success: false, message: 'Username or password is incorrect.' },
         { status: 401 }
       );
     }
 
-    console.log('Giriş başarılı:', { id: data.id, role: data.role });
+    console.log('Login successful:', { id: data.id, role: data.role });
     return NextResponse.json({
       success: true,
-      message: 'Giriş başarılı.',
+      message: 'Login successful.',
       userData: {
         id: data.id,
         username: data.username,
@@ -82,11 +82,11 @@ export async function POST(req: Request) {
       }
     });
   } catch (error: any) {
-    console.error('Giriş hatası:', error);
+    console.error('Login error:', error);
     return NextResponse.json(
       { 
         success: false, 
-        message: 'Giriş işlemi başarısız: ' + (error.message || 'Bilinmeyen hata'),
+        message: 'Login failed: ' + (error.message || 'Unknown error'),
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined 
       },
       { status: 500 }

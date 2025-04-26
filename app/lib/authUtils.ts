@@ -1,8 +1,8 @@
 'use client';
 
-// Rol bazlı modül erişimi
+// Role-based module access
 export const moduleAccess = {
-  // Her modül için izin verilen rolleri tanımlayın
+  // Define allowed roles for each module
   workorders: ['admin', 'manager', 'production'],
   orders: ['admin', 'manager', 'sales'],
   machines: ['admin', 'manager', 'maintenance', 'user'],
@@ -11,7 +11,7 @@ export const moduleAccess = {
   'wire-production': ['admin', 'manager', 'production', 'engineer']
 };
 
-// Kullanıcının belirli bir modüle erişimi olup olmadığını kontrol eder
+// Checks if a user has access to a specific module
 export const hasModuleAccess = (moduleName: string, userRole: string | null): boolean => {
   console.log(`DEBUG - hasModuleAccess called with moduleName: ${moduleName}, userRole: ${userRole}`);
   
@@ -20,36 +20,36 @@ export const hasModuleAccess = (moduleName: string, userRole: string | null): bo
     return false;
   }
   
-  // Admin her modüle erişebilir (ekstra kontrol)
-  // String olarak tam eşleşme yerine içeriyor mu kontrolü
+  // Admin can access all modules (extra check)
+  // Check if contains instead of exact string match
   if (userRole.toLowerCase().includes('admin')) {
     console.log(`DEBUG - User role contains 'admin', access granted`);
     return true;
   }
   
-  // Modül için izin verilen roller listesi
+  // List of allowed roles for the module
   const allowedRoles = moduleAccess[moduleName as keyof typeof moduleAccess];
   console.log(`DEBUG - Allowed roles for module ${moduleName}:`, allowedRoles);
   
-  // Eğer modül tanımlanmamışsa erişimi reddet
+  // If module is not defined, deny access
   if (!allowedRoles) {
     console.log(`DEBUG - Module ${moduleName} not defined in moduleAccess, access denied`);
     return false;
   }
   
-  // Kullanıcının rolü izin verilen roller listesinde mi kontrol et
+  // Check if user's role is in the list of allowed roles
   const hasAccess = allowedRoles.some(role => userRole.toLowerCase().includes(role.toLowerCase()));
   console.log(`DEBUG - User with role ${userRole} access to module ${moduleName}: ${hasAccess}`);
   return hasAccess;
 };
 
-// Kullanıcının o anki rolünü localStorage'dan alır
+// Gets the current user role from localStorage
 export const getCurrentUserRole = (): string | null => {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem('userRole');
 };
 
-// Makine modülü için özel yetkilendirme kontrolleri
+// Special authorization controls for machine module
 export const machinePermissions = {
   view: ['admin', 'manager', 'maintenance', 'user'],
   add: ['admin', 'manager', 'maintenance'],
@@ -57,17 +57,17 @@ export const machinePermissions = {
   delete: ['admin', 'manager']
 };
 
-// Makine modülü için detaylı yetki kontrolü
+// Detailed permission check for machine module
 export const hasMachinePermission = (action: keyof typeof machinePermissions): boolean => {
   const userRole = getCurrentUserRole();
   if (!userRole) return false;
   
-  // Admin her işlemi yapabilir
+  // Admin can perform any action
   if (userRole === 'admin') return true;
   
-  // İlgili işlem için izin verilen roller
+  // Allowed roles for the specific action
   const allowedRoles = machinePermissions[action];
   
-  // Kullanıcının rolü izin verilen roller listesinde mi kontrol et
+  // Check if user's role is in the list of allowed roles
   return allowedRoles.includes(userRole);
 }; 

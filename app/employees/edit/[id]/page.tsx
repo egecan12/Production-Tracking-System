@@ -33,12 +33,12 @@ export default function EditEmployeePage() {
         setIsLoading(true);
         setError(null);
 
-        console.log("Çalışan bilgileri yükleniyor:", employeeId);
+        console.log("Loading employee information:", employeeId);
         const data = await getData<Employee>("employees", { id: employeeId });
-        console.log("Çalışan verisi:", data);
+        console.log("Employee data:", data);
 
         if (!data || data.length === 0) {
-          throw new Error("Çalışan bulunamadı");
+          throw new Error("Employee not found");
         }
 
         const employeeData = data[0];
@@ -50,11 +50,11 @@ export default function EditEmployeePage() {
           is_active: employeeData.is_active === undefined ? true : employeeData.is_active,
         });
       } catch (err: unknown) {
-        console.error("Çalışan verisi alınırken hata:", err);
+        console.error("Error getting employee data:", err);
         const errorMessage =
           err instanceof Error
             ? err.message
-            : "Çalışan bilgileri yüklenirken bir hata oluştu.";
+            : "An error occurred while loading employee information.";
         setError(errorMessage);
       } finally {
         setIsLoading(false);
@@ -76,34 +76,34 @@ export default function EditEmployeePage() {
     setSuccess(null);
 
     try {
-      // Validasyon
+      // Validation
       if (!employee.name || !employee.email) {
-        throw new Error("İsim ve email alanları zorunludur.");
+        throw new Error("Name and email fields are required.");
       }
 
-      // Çalışan bilgilerini güncelle
-      console.log("Çalışan güncelleniyor:", employeeId);
+      // Update employee information
+      console.log("Updating employee:", employeeId);
       const updatedData = {
         name: employee.name,
         email: employee.email,
-        phone: employee.phone || null,
+        phone: employee.phone || undefined,
       };
       
       await updateData<Employee>("employees", updatedData, { id: employeeId });
-      console.log("Çalışan güncellendi");
+      console.log("Employee updated");
 
-      setSuccess("Çalışan bilgileri başarıyla güncellendi!");
+      setSuccess("Employee information updated successfully!");
 
-      // 2 saniye sonra çalışanlar sayfasına yönlendir
+      // Redirect to employees page after 2 seconds
       setTimeout(() => {
         router.push("/employees");
       }, 2000);
     } catch (err: unknown) {
-      console.error("Çalışan güncelleme hatası:", err);
+      console.error("Error updating employee:", err);
       const errorMessage =
         err instanceof Error
           ? err.message
-          : "Çalışan güncellenirken bir hata oluştu. Lütfen tekrar deneyin.";
+          : "An error occurred while updating the employee. Please try again.";
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -116,7 +116,7 @@ export default function EditEmployeePage() {
         <div className="container mx-auto px-4 py-8">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold text-gray-100">
-              Çalışan Düzenle
+              Edit Employee
             </h1>
             <div className="flex space-x-2">
               <Link
@@ -131,20 +131,20 @@ export default function EditEmployeePage() {
                 >
                   <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
                 </svg>
-                Ana Sayfa
+                Home
               </Link>
               <Link
                 href="/employees"
                 className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-4 rounded"
               >
-                Çalışanlar Listesine Dön
+                Return to Employees List
               </Link>
             </div>
           </div>
           <div className="text-center py-8">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
             <p className="mt-4 text-gray-300">
-              Çalışan bilgileri yükleniyor...
+              Loading employee information...
             </p>
           </div>
         </div>
@@ -157,7 +157,7 @@ export default function EditEmployeePage() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold text-gray-100">
-            Çalışan Düzenle
+            Edit Employee
           </h1>
           <div className="flex space-x-2">
             <Link
@@ -172,13 +172,13 @@ export default function EditEmployeePage() {
               >
                 <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
               </svg>
-              Ana Sayfa
+              Home
             </Link>
             <Link
               href="/employees"
               className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-4 rounded"
             >
-              Çalışanlar Listesine Dön
+              Return to Employees List
             </Link>
           </div>
         </div>
@@ -199,7 +199,7 @@ export default function EditEmployeePage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                İsim *
+                Name *
               </label>
               <input
                 type="text"
@@ -208,13 +208,13 @@ export default function EditEmployeePage() {
                 onChange={handleInputChange}
                 required
                 className="w-full border border-gray-600 rounded-md shadow-sm py-2 px-3 bg-gray-700 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Çalışanın adını giriniz"
+                placeholder="Enter employee name"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                E-posta Adresi *
+                Email Address *
               </label>
               <input
                 type="email"
@@ -223,13 +223,13 @@ export default function EditEmployeePage() {
                 onChange={handleInputChange}
                 required
                 className="w-full border border-gray-600 rounded-md shadow-sm py-2 px-3 bg-gray-700 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="ornek@sirket.com"
+                placeholder="example@company.com"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                Telefon Numarası
+                Phone Number
               </label>
               <input
                 type="text"
@@ -237,13 +237,13 @@ export default function EditEmployeePage() {
                 value={employee.phone || ""}
                 onChange={handleInputChange}
                 className="w-full border border-gray-600 rounded-md shadow-sm py-2 px-3 bg-gray-700 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="İsteğe bağlı"
+                placeholder="Optional"
               />
             </div>
 
             <div className="mb-4">
               <label htmlFor="is_active" className="block mb-1 font-medium">
-                Durum
+                Status
               </label>
               <div className="flex items-center">
                 <input
@@ -251,29 +251,28 @@ export default function EditEmployeePage() {
                   id="is_active"
                   name="is_active"
                   checked={employee.is_active}
-                  onChange={(e) => setEmployee({ ...employee, is_active: e.target.checked })}
-                  className="w-5 h-5 mr-2 rounded accent-blue-500 cursor-pointer"
+                  onChange={(e) =>
+                    setEmployee((prev) => ({
+                      ...prev,
+                      is_active: e.target.checked,
+                    }))
+                  }
+                  className="h-4 w-4 border-gray-600 rounded text-blue-600 focus:ring-blue-500 bg-gray-700"
                 />
-                <span className="text-gray-300">
-                  {employee.is_active ? "Aktif" : "Pasif"}
-                </span>
+                <label htmlFor="is_active" className="ml-2 text-gray-300">
+                  {employee.is_active ? "Active" : "Inactive"}
+                </label>
               </div>
-              <p className="text-sm text-gray-400 mt-1">
-                Pasif çalışanlar listede görünmez ve çalışma atamaları yapılamaz.
+              <p className="text-xs text-gray-400 mt-1">
+                Inactive employees will not appear in lists and cannot be assigned to work.
               </p>
             </div>
 
-            <div className="flex gap-3 pt-2">
-              <Link
-                href="/employees"
-                className="py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 w-1/2 text-center"
-              >
-                İptal
-              </Link>
+            <div className="flex justify-end pt-2">
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-1/2 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 flex items-center justify-center"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 flex items-center"
               >
                 {isSubmitting ? (
                   <>
@@ -297,10 +296,10 @@ export default function EditEmployeePage() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    Güncelleniyor...
+                    Updating...
                   </>
                 ) : (
-                  "Güncelle"
+                  "Update"
                 )}
               </button>
             </div>

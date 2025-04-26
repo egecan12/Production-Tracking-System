@@ -45,12 +45,12 @@ export default function OrdersPage() {
                 clipRule="evenodd"
               />
             </svg>
-            <span className="font-medium">Ana Sayfaya Dön</span>
+            <span className="font-medium"> Back to Home</span>
           </Link>
         </div>
 
         <h1 className="text-2xl font-bold mb-8 text-center text-gray-100">
-          Sipariş Yönetimi
+          Order Management
         </h1>
 
         <div className="space-y-8">
@@ -60,7 +60,7 @@ export default function OrdersPage() {
               onClick={() => setShowForm(!showForm)}
             >
               <h2 className="text-xl font-semibold text-gray-100">
-                Yeni Sipariş Oluştur
+                Create New Order
               </h2>
               <div className="text-gray-400 hover:text-gray-200">
                 <svg
@@ -98,7 +98,7 @@ export default function OrdersPage() {
               onClick={() => setShowList(!showList)}
             >
               <h2 className="text-xl font-semibold text-gray-100">
-                Mevcut Siparişler
+                Existing Orders
               </h2>
               <div className="text-gray-400 hover:text-gray-200">
                 <svg

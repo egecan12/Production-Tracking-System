@@ -7,7 +7,7 @@ import Link from "next/link";
 import { getData, createData, deleteData, getActiveCustomers } from "../lib/dataService";
 import ConfirmModal from "../components/ConfirmModal";
 
-// Customer interface (aynı tipte olmalı)
+// Customer interface (should be the same type)
 interface Customer {
   id: string;
   name: string;
@@ -18,12 +18,12 @@ interface Customer {
   updated_at: string;
 }
 
-// Format telefon numarası fonksiyonu
+// Format phone number function
 const formatPhoneNumber = (phoneNumber: string): string => {
-  // Sadece sayıları al
+  // Get only numbers
   const numbers = phoneNumber.replace(/\D/g, "");
 
-  // Türk telefon formatı: 0(5XX) XXX XX XX
+  // Turkish phone format: 0(5XX) XXX XX XX
   if (numbers.length === 10) {
     return `0(${numbers.slice(0, 3)}) ${numbers.slice(3, 6)} ${numbers.slice(
       6,
@@ -36,7 +36,7 @@ const formatPhoneNumber = (phoneNumber: string): string => {
     )} ${numbers.slice(9, 11)}`;
   }
 
-  // Formatlanamıyorsa olduğu gibi döndür
+  // If not formattable, return as is
   return phoneNumber;
 };
 
@@ -60,12 +60,12 @@ export default function CustomersPage() {
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Erişim kontrolü yap
+    // Check access control
     const userRole = getCurrentUserRole();
     const moduleAccess = hasModuleAccess("customers", userRole);
     setHasAccess(moduleAccess);
 
-    // Erişim varsa verileri yükle
+    // If access exists, load data
     if (moduleAccess) {
       fetchCustomers();
     } else {
@@ -75,13 +75,13 @@ export default function CustomersPage() {
 
   async function fetchCustomers() {
     try {
-      console.log("Müşteriler yükleniyor...");
+      console.log("Loading customers...");
       const data = await getActiveCustomers<Customer>();
-      console.log("Yüklenen müşteriler:", data);
+      console.log("Loaded customers:", data);
       setCustomers(data || []);
     } catch (error: any) {
-      console.error("Müşteri yükleme hatası:", error);
-      setError("Müşteriler yüklenemedi: " + error.message);
+      console.error("Customer loading error:", error);
+      setError("Couldn't load customers: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -92,11 +92,11 @@ export default function CustomersPage() {
     try {
       setIsAddingCustomer(true);
       
-      console.log("Yeni müşteri ekleniyor:", newCustomer);
+      console.log("Adding new customer:", newCustomer);
       const addedCustomers = await createData<Customer>("customers", newCustomer);
       
       if (addedCustomers && addedCustomers.length > 0) {
-        console.log("Müşteri eklendi:", addedCustomers[0]);
+        console.log("Customer added:", addedCustomers[0]);
         setCustomers([...(addedCustomers || []), ...customers]);
         setNewCustomer({
           name: "",
@@ -106,8 +106,8 @@ export default function CustomersPage() {
         });
       }
     } catch (error: any) {
-      console.error("Müşteri ekleme hatası:", error);
-      setError("Müşteri eklenemedi: " + error.message);
+      console.error("Customer addition error:", error);
+      setError("Couldn't add customer: " + error.message);
     } finally {
       setIsAddingCustomer(false);
     }
@@ -135,24 +135,24 @@ export default function CustomersPage() {
     try {
       setDeleteLoading(true);
       
-      console.log("Müşteri pasif duruma alınıyor:", deleteModal.customerId);
+      console.log("Setting customer to inactive:", deleteModal.customerId);
       await deleteData("customers", { id: deleteModal.customerId });
       
-      console.log("Müşteri pasif duruma alındı");
+      console.log("Customer set to inactive");
       setCustomers(
         customers.filter((customer) => customer.id !== deleteModal.customerId)
       );
       
       setDeleteModal({ isOpen: false, customerId: "", customerName: "" });
     } catch (error: any) {
-      console.error("Müşteri pasif duruma alma hatası:", error);
-      setError("Müşteri pasif duruma alınamadı: " + error.message);
+      console.error("Error setting customer to inactive:", error);
+      setError("Couldn't set customer to inactive: " + error.message);
     } finally {
       setDeleteLoading(false);
     }
   }
 
-  // Erişim yoksa, erişim reddedildi sayfasını göster
+  // If no access, show access denied page
   if (hasAccess === false) {
     return <AccessDenied />;
   }
@@ -162,7 +162,7 @@ export default function CustomersPage() {
       <div className="container mx-auto px-4 py-8 relative">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold text-gray-100">
-            Müşteri Yönetimi
+            Customer Management
           </h1>
           <div className="flex space-x-2">
             <Link
@@ -177,7 +177,7 @@ export default function CustomersPage() {
               >
                 <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
               </svg>
-              Ana Sayfa
+              Home
             </Link>
             <button
               onClick={() => setIsAddingCustomer(!isAddingCustomer)}
@@ -187,7 +187,7 @@ export default function CustomersPage() {
                   : "bg-blue-600 hover:bg-blue-700"
               } text-white font-medium py-2 px-4 rounded`}
             >
-              {isAddingCustomer ? "İptal" : "Yeni Müşteri Ekle"}
+              {isAddingCustomer ? "Cancel" : "Add New Customer"}
             </button>
           </div>
         </div>
@@ -201,7 +201,7 @@ export default function CustomersPage() {
         {isAddingCustomer && (
           <div className="bg-gray-800 rounded-lg p-6 mb-6 border border-gray-700">
             <h2 className="text-xl font-semibold text-gray-100 mb-4">
-              Yeni Müşteri Ekle
+              Add New Customer
             </h2>
             <form onSubmit={handleAddCustomer}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -210,7 +210,7 @@ export default function CustomersPage() {
                     htmlFor="name"
                     className="block text-sm font-medium text-gray-300 mb-1"
                   >
-                    Müşteri Adı*
+                    Customer Name*
                   </label>
                   <input
                     type="text"
@@ -228,7 +228,7 @@ export default function CustomersPage() {
                     htmlFor="company_name"
                     className="block text-sm font-medium text-gray-300 mb-1"
                   >
-                    Şirket Adı
+                    Company Name
                   </label>
                   <input
                     type="text"
@@ -248,7 +248,7 @@ export default function CustomersPage() {
                     htmlFor="contact_email"
                     className="block text-sm font-medium text-gray-300 mb-1"
                   >
-                    E-posta
+                    Email
                   </label>
                   <input
                     type="email"
@@ -268,10 +268,10 @@ export default function CustomersPage() {
                     htmlFor="phone_number"
                     className="block text-sm font-medium text-gray-300 mb-1"
                   >
-                    Telefon
+                    Phone Number
                   </label>
                   <input
-                    type="text"
+                    type="tel"
                     id="phone_number"
                     value={newCustomer.phone_number}
                     onChange={(e) =>
@@ -281,15 +281,16 @@ export default function CustomersPage() {
                       })
                     }
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="0(5XX) XXX XX XX"
                   />
                 </div>
               </div>
               <div className="mt-6">
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded w-full"
                 >
-                  Müşteri Ekle
+                  Add Customer
                 </button>
               </div>
             </form>
@@ -297,123 +298,87 @@ export default function CustomersPage() {
         )}
 
         {loading ? (
-          <div className="text-center py-4 text-gray-300">Yükleniyor...</div>
+          <div className="text-center py-8 text-gray-300">Loading...</div>
         ) : customers.length === 0 ? (
-          <p className="text-gray-400">Henüz kayıtlı müşteri bulunmuyor</p>
+          <div className="text-center py-8 text-gray-300">
+            No customers found. Add a new customer to get started.
+          </div>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-gray-700">
-            <table className="min-w-full divide-y divide-gray-700">
-              <thead className="bg-gray-800">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
-                  >
-                    Müşteri Adı
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
-                  >
-                    Şirket
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
-                  >
-                    E-posta
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
-                  >
-                    Telefon
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
-                  >
-                    İşlemler
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-gray-900 divide-y divide-gray-800">
-                {customers.length === 0 ? (
+          <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-700">
+                <thead className="bg-gray-700">
                   <tr>
-                    <td
-                      colSpan={5}
-                      className="px-6 py-4 text-sm text-center text-gray-400"
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
                     >
-                      Herhangi bir müşteri kaydı bulunamadı.
-                    </td>
+                      Customer
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
+                    >
+                      Contact
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider"
+                    >
+                      Actions
+                    </th>
                   </tr>
-                ) : (
-                  customers.map((customer) => (
-                    <tr key={customer.id} className="hover:bg-gray-800/50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-300 uppercase">
-                        {customer.name}
+                </thead>
+                <tbody className="bg-gray-800 divide-y divide-gray-700">
+                  {customers.map((customer) => (
+                    <tr
+                      key={customer.id}
+                      className="hover:bg-gray-750 transition-colors"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div>
+                            <div className="text-base font-medium text-gray-200">
+                              {customer.name}
+                            </div>
+                            <div className="text-sm text-gray-400">
+                              {customer.company_name}
+                            </div>
+                          </div>
+                        </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400 uppercase">
-                        {customer.company_name || "-"}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-200">
+                          {customer.contact_email}
+                        </div>
+                        <div className="text-sm text-gray-400">
+                          {formatPhoneNumber(customer.phone_number)}
+                        </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                        {customer.contact_email || "-"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                        {customer.phone_number
-                          ? formatPhoneNumber(customer.phone_number)
-                          : "-"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300 flex gap-2">
-                        <Link
-                          href={`/customers/edit/${customer.id}`}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md flex items-center"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 mr-1"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                          </svg>
-                          Düzenle
-                        </Link>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
                           onClick={() =>
-                            confirmDelete(customer.id!, customer.name)
+                            confirmDelete(customer.id, customer.name)
                           }
-                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md flex items-center"
+                          className="text-red-400 hover:text-red-500"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 mr-1"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          Sil
+                          Delete
                         </button>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
         <ConfirmModal
           isOpen={deleteModal.isOpen}
-          title="Müşteriyi Pasif Duruma Al"
-          message={`"${deleteModal.customerName}" isimli müşteriyi pasif duruma almak istediğinizden emin misiniz? Bu işlem daha sonra geri alınabilir.`}
-          confirmText="Evet, Pasif Duruma Al"
-          cancelText="İptal"
+          title="Delete Customer"
+          message={`Are you sure you want to delete "${deleteModal.customerName}"? This action will set the customer to inactive.`}
+          confirmText="Yes, Delete"
+          cancelText="Cancel"
           onConfirm={handleDeleteCustomer}
           onCancel={cancelDelete}
           isLoading={deleteLoading}

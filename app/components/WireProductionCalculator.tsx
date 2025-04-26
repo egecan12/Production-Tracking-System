@@ -148,7 +148,7 @@ export default function WireProductionCalculator() {
         {/* Input Fields Section */}
         <div className="bg-gray-800 shadow-md rounded-lg p-6 border border-gray-700">
           <h3 className="text-lg font-medium text-blue-400 mb-4">
-            Giriş Parametreleri
+            Input Parameters
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -157,7 +157,7 @@ export default function WireProductionCalculator() {
                 htmlFor="nakedWeightKg"
                 className="block text-sm font-medium text-gray-300"
               >
-                Çıplak Ağırlık (kg)
+                Raw Weight (kg)
               </label>
               <input
                 id="nakedWeightKg"
@@ -175,7 +175,7 @@ export default function WireProductionCalculator() {
                 htmlFor="totalInsulationKg"
                 className="block text-sm font-medium text-gray-300"
               >
-                Toplam İzolasyon (kg)
+                Total Insulation (kg)
               </label>
               <input
                 id="totalInsulationKg"
@@ -193,7 +193,7 @@ export default function WireProductionCalculator() {
                 htmlFor="insulationPerMeterGr"
                 className="block text-sm font-medium text-gray-300"
               >
-                Metre Başı İzolasyon (gr)
+                Insulation per Meter (gr)
               </label>
               <input
                 id="insulationPerMeterGr"
@@ -211,7 +211,7 @@ export default function WireProductionCalculator() {
                 htmlFor="wireLengthMeter"
                 className="block text-sm font-medium text-gray-300"
               >
-                Kablo Uzunluğu (m)
+                Wire Length (m)
               </label>
               <input
                 id="wireLengthMeter"
@@ -229,7 +229,7 @@ export default function WireProductionCalculator() {
                 htmlFor="spoolCount"
                 className="block text-sm font-medium text-gray-300"
               >
-                Makara Sayısı
+                Spool Count
               </label>
               <input
                 id="spoolCount"
@@ -247,7 +247,7 @@ export default function WireProductionCalculator() {
                 htmlFor="crossSectionWidthMm"
                 className="block text-sm font-medium text-gray-300"
               >
-                Kesit Genişliği (mm)
+                Cross Section Width (mm)
               </label>
               <input
                 id="crossSectionWidthMm"
@@ -265,7 +265,7 @@ export default function WireProductionCalculator() {
                 htmlFor="crossSectionHeightMm"
                 className="block text-sm font-medium text-gray-300"
               >
-                Kesit Yüksekliği (mm)
+                Cross Section Height (mm)
               </label>
               <input
                 id="crossSectionHeightMm"
@@ -283,7 +283,7 @@ export default function WireProductionCalculator() {
                 htmlFor="totalWeightKg"
                 className="block text-sm font-medium text-gray-300"
               >
-                Toplam Ağırlık (kg)
+                Total Weight (kg)
               </label>
               <input
                 id="totalWeightKg"
@@ -301,7 +301,7 @@ export default function WireProductionCalculator() {
                 htmlFor="theoreticalWeightKg"
                 className="block text-sm font-medium text-gray-300"
               >
-                Teorik Ağırlık (kg)
+                Theoretical Weight (kg)
               </label>
               <input
                 id="theoreticalWeightKg"
@@ -319,7 +319,7 @@ export default function WireProductionCalculator() {
                 htmlFor="actualWeightKg"
                 className="block text-sm font-medium text-gray-300"
               >
-                Gerçek Ağırlık (kg)
+                Actual Weight (kg)
               </label>
               <input
                 id="actualWeightKg"
@@ -337,7 +337,7 @@ export default function WireProductionCalculator() {
                 htmlFor="theoreticalProduction"
                 className="block text-sm font-medium text-gray-300"
               >
-                Teorik Üretim
+                Theoretical Production
               </label>
               <input
                 id="theoreticalProduction"
@@ -355,7 +355,7 @@ export default function WireProductionCalculator() {
                 htmlFor="actualProduction"
                 className="block text-sm font-medium text-gray-300"
               >
-                Gerçek Üretim
+                Actual Production
               </label>
               <input
                 id="actualProduction"
@@ -374,7 +374,7 @@ export default function WireProductionCalculator() {
                 htmlFor="spoolType"
                 className="block text-sm font-medium text-gray-300"
               >
-                Makara Tipi
+                Spool Type
               </label>
               <select
                 id="spoolType"
@@ -383,10 +383,10 @@ export default function WireProductionCalculator() {
                 onChange={handleSelectChange}
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-100"
               >
-                <option value="">Makara tipini seçin</option>
+                <option value="">Select Spool Type</option>
                 {Object.keys(spoolTable).map((spoolType) => (
                   <option key={spoolType} value={spoolType}>
-                    {spoolType} - (Maks:{" "}
+                    {spoolType} - (Max:{" "}
                     {spoolTable[spoolType as keyof typeof spoolTable].maxKg} kg)
                   </option>
                 ))}
@@ -395,7 +395,7 @@ export default function WireProductionCalculator() {
               {isOverCapacity() && (
                 <div className="mt-2 text-red-400 font-medium flex items-center">
                   <span className="text-lg mr-1">❗</span>
-                  <span>Seçilen makara kapasitesini aşıyor!</span>
+                  <span>Selected spool capacity is exceeded!</span>
                 </div>
               )}
             </div>
@@ -405,13 +405,13 @@ export default function WireProductionCalculator() {
         {/* Results Section */}
         <div className="bg-gray-800 shadow-md rounded-lg p-6 border border-gray-700">
           <h3 className="text-lg font-medium text-red-400 mb-4">
-            Hesaplanan Metrikler
+            Calculated Metrics
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-600">
               <p className="text-sm text-gray-400 mb-1">
-                İzolasyon Toplamı (gr&apos;dan kg)
+                Insulation Total (gr to kg)
               </p>
               <p className="text-lg font-bold text-gray-100">
                 {formatNumber(metrics.insulationTotalFromGr)} kg
@@ -419,7 +419,7 @@ export default function WireProductionCalculator() {
             </div>
 
             <div className="bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-600">
-              <p className="text-sm text-gray-400 mb-1">İzolasyon Oranı</p>
+              <p className="text-sm text-gray-400 mb-1">Insulation Ratio</p>
               <p className="text-lg font-bold text-gray-100">
                 {formatNumber(metrics.insulationRatio)}%
               </p>
@@ -427,16 +427,16 @@ export default function WireProductionCalculator() {
 
             <div className="bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-600">
               <p className="text-sm text-gray-400 mb-1">
-                Makara Başı İzolasyon
+                Spool Insulation
               </p>
               <p className="text-lg font-bold text-gray-100">
-                {formatNumber(metrics.insulationPerSpool)} kg/makara
+                {formatNumber(metrics.insulationPerSpool)} kg/spool
               </p>
             </div>
 
             <div className="bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-600">
               <p className="text-sm text-gray-400 mb-1">
-                Efektif Toplam Ağırlık
+                Effective Total Weight
               </p>
               <p className="text-lg font-bold text-gray-100">
                 {formatNumber(metrics.effectiveTotalWeight)} kg
@@ -445,7 +445,7 @@ export default function WireProductionCalculator() {
 
             <div className="bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-600">
               <p className="text-sm text-gray-400 mb-1">
-                Efektif Ağırlık Verimliliği
+                Effective Weight Efficiency
               </p>
               <p className="text-lg font-bold text-gray-100">
                 {formatNumber(metrics.effectiveWeightEfficiency)}%
@@ -453,7 +453,7 @@ export default function WireProductionCalculator() {
             </div>
 
             <div className="bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-600">
-              <p className="text-sm text-gray-400 mb-1">Kesit Alanı</p>
+              <p className="text-sm text-gray-400 mb-1">Cross Section Area</p>
               <p
                 className={`text-lg font-bold ${
                   isHaddeExceeded() ? "text-amber-400" : "text-gray-100"
@@ -467,28 +467,28 @@ export default function WireProductionCalculator() {
             </div>
 
             <div className="bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-600">
-              <p className="text-sm text-gray-400 mb-1">Tel Ağırlığı</p>
+              <p className="text-sm text-gray-400 mb-1">Wire Weight</p>
               <p className="text-lg font-bold text-gray-100">
                 {formatNumber(metrics.wireWeightKg)} kg
               </p>
             </div>
 
             <div className="bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-600">
-              <p className="text-sm text-gray-400 mb-1">Fire Oranı</p>
+              <p className="text-sm text-gray-400 mb-1">Fire Rate</p>
               <p className="text-lg font-bold text-gray-100">
                 {formatNumber(metrics.fireRate)}%
               </p>
             </div>
 
             <div className="bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-600">
-              <p className="text-sm text-gray-400 mb-1">Verimlilik</p>
+              <p className="text-sm text-gray-400 mb-1">Efficiency</p>
               <p className="text-lg font-bold text-gray-100">
                 {formatNumber(metrics.efficiency)}%
               </p>
             </div>
 
             <div className="bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-600">
-              <p className="text-sm text-gray-400 mb-1">Makara Başı Ağırlık</p>
+              <p className="text-sm text-gray-400 mb-1">Spool Weight</p>
               <p
                 className={`text-lg font-bold ${
                   isOverCapacity() ? "text-red-400" : "text-gray-100"
@@ -499,7 +499,7 @@ export default function WireProductionCalculator() {
                       metrics.effectiveTotalWeight / inputs.spoolCount
                     )
                   : formatNumber(metrics.effectiveTotalWeight)}{" "}
-                kg/makara
+                kg/spool
                 {isOverCapacity() && (
                   <span className="ml-2 text-red-400 text-sm">❗</span>
                 )}
@@ -513,10 +513,10 @@ export default function WireProductionCalculator() {
               <div className="flex items-center">
                 <span className="text-2xl mr-2 text-amber-400">⚠️</span>
                 <span className="text-amber-400 font-medium">
-                  Hadde Kontrolü:
+                  Hadde Control:
                 </span>
                 <span className="text-amber-200 ml-2">
-                  Bu kesit çok büyük – haddeye sığmayabilir.
+                  This cross section is too large – it may not fit in the hadde.
                 </span>
               </div>
             </div>

@@ -1,7 +1,6 @@
 // Follow the existing UI design of the project.
 // You are expected to work as a professional UI/UX designer.
-// The application targets Turkish users — use Turkish in all UI elements.
+// The application targets English users — use English in all UI elements.
 // When adding new features, check if database changes are required and let me know.
-// If so, update the relevant tables in `create_tables.sql`, as this file serves as the database reference.
 // Make the UI Responsive for Web, Tablet and phones.
 //This rule ensures that the cursor changes to a pointer when hovering over any clickable button element. Please when you generate a button use this effect.

@@ -393,7 +393,7 @@ export default function OrderForm() {
         {message && (
           <div
             className={`mt-4 p-3 rounded ${
-              message.includes("Error") 
+              message.includes("Error") || message === "Please fill in all fields."
                 ? "bg-red-900/50 text-red-200 border border-red-700" 
                 : "bg-green-900/50 text-green-200 border border-green-700"
             }`}

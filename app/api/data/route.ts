@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../lib/supabaseAdmin';
 import { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 
-// İzin verilen tablolar listesi - güvenlik için sadece izin verilen tablolara erişim sağlayacağız
+// List of allowed tables - for security, we'll only provide access to allowed tables
 const ALLOWED_TABLES = [
   'employees',
   'customers',
@@ -11,10 +11,10 @@ const ALLOWED_TABLES = [
   'work_orders',
   'production_logs',
   'production_specifications',
-  'work_sessions'  // İş oturumları tablosu eklendi
+  'work_sessions'  // Work sessions table added
 ];
 
-// Her tablo için izin verilen işlemler
+// Allowed operations for each table
 const TABLE_PERMISSIONS = {
   employees: ['read', 'create', 'update', 'delete'],
   customers: ['read', 'create', 'update', 'delete'],
@@ -23,37 +23,37 @@ const TABLE_PERMISSIONS = {
   work_orders: ['read', 'create', 'update', 'delete'],
   production_logs: ['read', 'create', 'update', 'delete'],
   production_specifications: ['read', 'create', 'update', 'delete'],
-  work_sessions: ['read', 'create', 'update', 'delete']  // İş oturumları için izinler
-  // İhtiyaç duyulursa bazı tablolarda belirli işlemleri kısıtlayabilirsiniz
+  work_sessions: ['read', 'create', 'update', 'delete']  // Permissions for work sessions
+  // You can restrict certain operations for some tables if needed
 };
 
-// Tarih alanlarını doğru biçime dönüştürür
+// Converts date fields to the correct format
 function validateAndConvertDateField(table: string, data: any): any {
-  // Dönüştürülmüş veriyi içerecek nesne
+  // Object that will contain the converted data
   const convertedData = { ...data };
   
-  // Tabloya göre tarih alanları farklı olabilir
+  // Date fields can be different depending on the table
   const dateFields: Record<string, string[]> = {
     orders: ['created_at', 'delivery_date', 'production_start_date'],
     work_orders: ['start_date', 'end_date', 'created_at'],
     production_logs: ['production_date', 'created_at'],
     employees: ['hire_date', 'created_at'],
-    // Diğer tablolar için tarih alanları eklenebilir
+    // Date fields for other tables can be added here
   };
   
-  // İlgili tablonun tarih alanları varsa
+  // If the table has date fields
   const fieldsToConvert = dateFields[table];
   if (fieldsToConvert) {
-    // Her tarih alanı için
+    // For each date field
     fieldsToConvert.forEach(field => {
       if (field in convertedData && convertedData[field]) {
-        // Eğer dizi içindeyse (tarih aralığı filtresi)
+        // If it's in an array (date range filter)
         if (Array.isArray(convertedData[field])) {
           convertedData[field] = convertedData[field].map((date: any) => 
             date ? new Date(date).toISOString() : null
           );
         } else {
-          // Tek tarih değeri
+          // Single date value
           convertedData[field] = new Date(convertedData[field]).toISOString();
         }
       }
@@ -65,41 +65,41 @@ function validateAndConvertDateField(table: string, data: any): any {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔍 Veri API isteği alındı');
+    console.log('🔍 Data API request received');
     const { table, action, data, filters } = await request.json();
-    console.log('📊 İstek detayları:', { table, action, filters });
+    console.log('📊 Request details:', { table, action, filters });
     
-    // Tablo erişim kontrolü
+    // Table access control
     if (!ALLOWED_TABLES.includes(table)) {
-      console.warn(`⛔ Tablo erişimi reddedildi: ${table}`);
+      console.warn(`⛔ Table access denied: ${table}`);
       return NextResponse.json({ 
-        error: `'${table}' tablosuna erişim izni yok. İzin verilen tablolar: ${ALLOWED_TABLES.join(', ')}` 
+        error: `No access permission for '${table}' table. Allowed tables: ${ALLOWED_TABLES.join(', ')}` 
       }, { status: 403 });
     }
     
-    // İşlem erişim kontrolü
+    // Operation access control
     const allowedActions = TABLE_PERMISSIONS[table as keyof typeof TABLE_PERMISSIONS];
     if (!allowedActions.includes(action)) {
-      console.warn(`⛔ İşlem erişimi reddedildi: ${table}/${action}`);
+      console.warn(`⛔ Operation access denied: ${table}/${action}`);
       return NextResponse.json({ 
-        error: `'${table}' tablosu için '${action}' işlemine izin verilmiyor.` 
+        error: `Operation '${action}' is not allowed for '${table}' table.` 
       }, { status: 403 });
     }
     
-    console.log(`✅ Erişim kontrolleri başarılı: ${table}/${action}`);
+    console.log(`✅ Access controls passed: ${table}/${action}`);
     
-    // İşlem türüne göre Supabase sorgusu oluştur
+    // Create Supabase query based on operation type
     let result;
     
     try {
       switch (action) {
         case 'read':
-          console.log(`📖 Veri okuma işlemi başlatılıyor: ${table}`);
+          console.log(`📖 Starting data read operation: ${table}`);
           let readQuery = supabaseAdmin.from(table).select('*');
           
-          // Filtreleri uygula
+          // Apply filters
           if (filters) {
-            // Date alanlarını dönüştür
+            // Convert date fields
             const convertedFilters = validateAndConvertDateField(table, filters);
             
             Object.entries(convertedFilters).forEach(([key, value]) => {
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
                   readQuery = readQuery.lte(key, value[1]);
                 }
               } else if (value !== undefined && value !== null && value !== '') {
-                console.log(`🔍 Filtre uygulanıyor: ${key}=${value}`);
+                console.log(`🔍 Applying filter: ${key}=${value}`);
                 readQuery = readQuery.eq(key, value);
               }
             });
@@ -123,13 +123,13 @@ export async function POST(request: NextRequest) {
           
         case 'create':
           if (!data) {
-            return NextResponse.json({ error: 'Veri (data) gereklidir' }, { status: 400 });
+            return NextResponse.json({ error: 'Data is required' }, { status: 400 });
           }
           
-          console.log(`➕ Veri ekleme işlemi başlatılıyor: ${table}`);
-          // Birden fazla kayıt eklenebilir, tek kayıtları diziye çevirir
+          console.log(`➕ Starting data addition operation: ${table}`);
+          // Multiple records can be added, convert single records to array
           const insertData = Array.isArray(data) ? data : [data];
-          // Date alanlarını dönüştür
+          // Convert date fields
           const insertFormattedData = insertData.map(item => validateAndConvertDateField(table, item));
           result = await supabaseAdmin.from(table).insert(insertFormattedData).select();
           break;
@@ -137,19 +137,19 @@ export async function POST(request: NextRequest) {
         case 'update':
           if (!data || !filters) {
             return NextResponse.json({ 
-              error: 'Veri (data) ve filtreler (filters) gereklidir' 
+              error: 'Data and filters are required' 
             }, { status: 400 });
           }
           
-          console.log(`🔄 Veri güncelleme işlemi başlatılıyor: ${table}`);
-          // Date alanlarını dönüştür
+          console.log(`🔄 Starting data update operation: ${table}`);
+          // Convert date fields
           const updateFormattedData = validateAndConvertDateField(table, data);
           let updateQuery = supabaseAdmin.from(table).update(updateFormattedData);
           
-          // Filtreleri uygula
+          // Apply filters
           Object.entries(filters).forEach(([key, value]) => {
             if (value !== undefined && value !== null) {
-              console.log(`🔍 Filtre uygulanıyor: ${key}=${value}`);
+              console.log(`🔍 Applying filter: ${key}=${value}`);
               updateQuery = updateQuery.eq(key, value);
             }
           });
@@ -159,33 +159,33 @@ export async function POST(request: NextRequest) {
           
         case 'delete':
           if (!filters) {
-            return NextResponse.json({ error: 'Filtreler (filters) gereklidir' }, { status: 400 });
+            return NextResponse.json({ error: 'Filters are required' }, { status: 400 });
           }
           
-          console.log(`❌ Veri silme işlemi başlatılıyor: ${table}`);
+          console.log(`❌ Starting data deletion operation: ${table}`);
           
-          // Eğer employees, customers veya machines tablosu ise, silme yerine is_active = false olarak güncelle
+          // If the table is employees, customers, or machines, update is_active to false instead of deleting
           if (table === 'employees' || table === 'customers' || table === 'machines') {
-            console.log(`🔄 ${table} kaydı silme yerine pasif duruma alınıyor`);
+            console.log(`🔄 Setting ${table} record to inactive instead of deleting`);
             let updateQuery = supabaseAdmin.from(table).update({ is_active: false });
             
-            // Filtreleri uygula
+            // Apply filters
             Object.entries(filters).forEach(([key, value]) => {
               if (value !== undefined && value !== null) {
-                console.log(`🔍 Filtre uygulanıyor: ${key}=${value}`);
+                console.log(`🔍 Applying filter: ${key}=${value}`);
                 updateQuery = updateQuery.eq(key, value);
               }
             });
             
             result = await updateQuery.select();
           } else {
-            // Diğer tablolar için normal silme işlemi
+            // Normal deletion for other tables
             let deleteQuery = supabaseAdmin.from(table).delete();
             
-            // Filtreleri uygula
+            // Apply filters
             Object.entries(filters).forEach(([key, value]) => {
               if (value !== undefined && value !== null) {
-                console.log(`🔍 Filtre uygulanıyor: ${key}=${value}`);
+                console.log(`🔍 Applying filter: ${key}=${value}`);
                 deleteQuery = deleteQuery.eq(key, value);
               }
             });
@@ -195,30 +195,30 @@ export async function POST(request: NextRequest) {
           break;
           
         default:
-          return NextResponse.json({ error: `Geçersiz işlem: ${action}` }, { status: 400 });
+          return NextResponse.json({ error: `Invalid operation: ${action}` }, { status: 400 });
       }
     } catch (queryError: any) {
-      console.error(`⚠️ Supabase sorgu hatası:`, queryError);
+      console.error(`⚠️ Supabase query error:`, queryError);
       return NextResponse.json({
-        error: `Veritabanı işlemi sırasında hata: ${queryError.message || queryError}`,
+        error: `Error during database operation: ${queryError.message || queryError}`,
         details: process.env.NODE_ENV === 'development' ? queryError.stack : undefined
       }, { status: 500 });
     }
     
-    // Supabase hata kontrolü
+    // Supabase error check
     if (result.error) {
-      console.error(`⚠️ Veritabanı hatası (${table}/${action}):`, result.error);
+      console.error(`⚠️ Database error (${table}/${action}):`, result.error);
       return NextResponse.json({
-        error: result.error.message || 'Veritabanı hatası oluştu',
+        error: result.error.message || 'Database error occurred',
         details: result.error,
         code: result.error.code
       }, { status: 500 });
     }
     
-    // Sonuç log
-    console.log(`✅ İşlem başarılı (${table}/${action}): ${result.data?.length || 0} kayıt`);
+    // Result log
+    console.log(`✅ Operation successful (${table}/${action}): ${result.data?.length || 0} records`);
     
-    // Başarılı sonuç
+    // Successful result
     return NextResponse.json({
       success: true,
       data: result.data,
@@ -226,9 +226,9 @@ export async function POST(request: NextRequest) {
     });
     
   } catch (error: any) {
-    console.error('❌ API hatası:', error);
+    console.error('❌ API error:', error);
     return NextResponse.json({
-      error: error.message || 'İşlem sırasında bir hata oluştu',
+      error: error.message || 'An error occurred during the operation',
       details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     }, { status: 500 });
   }

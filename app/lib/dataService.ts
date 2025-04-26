@@ -1,10 +1,10 @@
 /**
- * DataService - Tüm veri işlemleri için merkezi bir servis
- * Bu servis, component'lerin doğrudan Supabase veya API ile uğraşmak yerine
- * veri işlemlerini gerçekleştirmesi için tutarlı bir arayüz sağlar.
+ * DataService - A central service for all data operations
+ * This service provides a consistent interface for components to perform
+ * data operations instead of dealing directly with Supabase or API.
  */
 
-// Genel tablo işlemleri için tip tanımlamaları
+// Type definitions for general table operations
 export type DataAction = 'read' | 'create' | 'update' | 'delete';
 export type DataTable = 
   | 'employees' 
@@ -14,9 +14,9 @@ export type DataTable =
   | 'work_orders' 
   | 'production_logs' 
   | 'production_specifications'
-  | 'work_sessions';  // İş oturumları tablosu eklendi
+  | 'work_sessions';  // Work sessions table added
 
-// API servisine yapılacak istekler için tip tanımı
+// Type definition for requests to the API service
 interface DataRequest {
   table: DataTable;
   action: DataAction;
@@ -24,7 +24,7 @@ interface DataRequest {
   filters?: Record<string, any>;
 }
 
-// API yanıtları için tip tanımı
+// Type definition for API responses
 interface DataResponse<T = any> {
   success: boolean;
   data?: T[];
@@ -33,7 +33,7 @@ interface DataResponse<T = any> {
 }
 
 /**
- * API'yi kullanarak veri işlemlerini gerçekleştirir
+ * Performs data operations using the API
  */
 export async function fetchData<T = any>(request: DataRequest): Promise<DataResponse<T>> {
   try {
@@ -48,21 +48,21 @@ export async function fetchData<T = any>(request: DataRequest): Promise<DataResp
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(result.error || `${request.action} işlemi başarısız oldu`);
+      throw new Error(result.error || `${request.action} operation failed`);
     }
 
     return result as DataResponse<T>;
   } catch (error: any) {
-    console.error('Veri işlemi hatası:', error);
+    console.error('Data operation error:', error);
     return {
       success: false,
-      error: error.message || 'Veri işlemi sırasında bir hata oluştu',
+      error: error.message || 'An error occurred during data operation',
     };
   }
 }
 
 /**
- * Tablo verilerini okur
+ * Reads table data
  */
 export async function getData<T = any>(table: DataTable, filters?: Record<string, any>): Promise<T[]> {
   const result = await fetchData<T>({
@@ -72,7 +72,7 @@ export async function getData<T = any>(table: DataTable, filters?: Record<string
   });
 
   if (!result.success) {
-    console.error(`Veri okuma hatası (${table}):`, result.error);
+    console.error(`Data reading error (${table}):`, result.error);
     return [];
   }
 
@@ -80,7 +80,7 @@ export async function getData<T = any>(table: DataTable, filters?: Record<string
 }
 
 /**
- * Tabloya yeni veri/veriler ekler
+ * Adds new data/records to the table
  */
 export async function createData<T = any>(table: DataTable, data: Partial<T> | Partial<T>[]): Promise<T[]> {
   const result = await fetchData<T>({
@@ -90,15 +90,15 @@ export async function createData<T = any>(table: DataTable, data: Partial<T> | P
   });
 
   if (!result.success) {
-    console.error(`Veri ekleme hatası (${table}):`, result.error);
-    throw new Error(result.error || 'Veri eklenemedi');
+    console.error(`Data addition error (${table}):`, result.error);
+    throw new Error(result.error || 'Data could not be added');
   }
 
   return result.data || [];
 }
 
 /**
- * Sadece aktif çalışanları almak için özel fonksiyon
+ * Special function to get only active employees
  */
 export async function getActiveEmployees<T = any>(): Promise<T[]> {
   const result = await fetchData<T>({
@@ -108,7 +108,7 @@ export async function getActiveEmployees<T = any>(): Promise<T[]> {
   });
 
   if (!result.success) {
-    console.error(`Aktif çalışanları alma hatası:`, result.error);
+    console.error(`Error getting active employees:`, result.error);
     return [];
   }
 
@@ -116,7 +116,7 @@ export async function getActiveEmployees<T = any>(): Promise<T[]> {
 }
 
 /**
- * Sadece aktif müşterileri almak için özel fonksiyon
+ * Special function to get only active customers
  */
 export async function getActiveCustomers<T = any>(): Promise<T[]> {
   const result = await fetchData<T>({
@@ -126,7 +126,7 @@ export async function getActiveCustomers<T = any>(): Promise<T[]> {
   });
 
   if (!result.success) {
-    console.error(`Aktif müşterileri alma hatası:`, result.error);
+    console.error(`Error getting active customers:`, result.error);
     return [];
   }
 
@@ -134,7 +134,7 @@ export async function getActiveCustomers<T = any>(): Promise<T[]> {
 }
 
 /**
- * Sadece aktif makineleri almak için özel fonksiyon
+ * Special function to get only active machines
  */
 export async function getActiveMachines<T = any>(): Promise<T[]> {
   const result = await fetchData<T>({
@@ -144,7 +144,7 @@ export async function getActiveMachines<T = any>(): Promise<T[]> {
   });
 
   if (!result.success) {
-    console.error(`Aktif makineleri alma hatası:`, result.error);
+    console.error(`Error getting active machines:`, result.error);
     return [];
   }
 
@@ -152,7 +152,7 @@ export async function getActiveMachines<T = any>(): Promise<T[]> {
 }
 
 /**
- * Tablo verisini günceller
+ * Updates table data
  */
 export async function updateData<T = any>(table: DataTable, data: Partial<T>, filters: Record<string, any>): Promise<T[]> {
   const result = await fetchData<T>({
@@ -163,15 +163,15 @@ export async function updateData<T = any>(table: DataTable, data: Partial<T>, fi
   });
 
   if (!result.success) {
-    console.error(`Veri güncelleme hatası (${table}):`, result.error);
-    throw new Error(result.error || 'Veri güncellenemedi');
+    console.error(`Data update error (${table}):`, result.error);
+    throw new Error(result.error || 'Data could not be updated');
   }
 
   return result.data || [];
 }
 
 /**
- * Tablo verisini siler
+ * Deletes table data
  */
 export async function deleteData<T = any>(table: DataTable, filters: Record<string, any>): Promise<T[]> {
   const result = await fetchData<T>({
@@ -181,8 +181,8 @@ export async function deleteData<T = any>(table: DataTable, filters: Record<stri
   });
 
   if (!result.success) {
-    console.error(`Veri silme hatası (${table}):`, result.error);
-    throw new Error(result.error || 'Veri silinemedi');
+    console.error(`Data deletion error (${table}):`, result.error);
+    throw new Error(result.error || 'Data could not be deleted');
   }
 
   return result.data || [];

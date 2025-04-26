@@ -40,30 +40,30 @@ export default function MachinePage({ params }: PageProps) {
   useEffect(() => {
     async function fetchData() {
       try {
-        console.log("Makine verileri yükleniyor...");
+        console.log("Loading machine data...");
         
         // Fetch machine details using dataService
         const machinesData = await getData<Machine>("machines", { id: machineId });
-        console.log("Makine verileri:", machinesData);
+        console.log("Machine data:", machinesData);
         
         if (machinesData && machinesData.length > 0) {
           setMachine(machinesData[0]);
         } else {
-          throw new Error("Makine bulunamadı");
+          throw new Error("Machine not found");
         }
 
         // Fetch active operators for this machine
-        // Not: work_sessions tablosu için join işlemi gerekiyor ama API'de desteklenmiyor şu an
-        // İlerde API üzerinden ilişkisel sorgular eklenebilir veya çoklu sorgu yapılabilir
-        console.log("Aktif operatör verileri yükleniyor...");
+        // Note: work_sessions table needs join operation but it's not supported in the API yet
+        // In the future, relational queries can be added via API or multiple queries can be used
+        console.log("Loading active operator data...");
         const sessionsData = await getData<WorkSession>("work_sessions", { 
           machine_id: machineId,
           is_active: true
         });
-        console.log("İş oturumları:", sessionsData);
+        console.log("Work sessions:", sessionsData);
         
         if (sessionsData && sessionsData.length > 0) {
-          // Şimdi her bir oturum için çalışan bilgilerini alalım
+          // Now let's get employee information for each session
           const operatorsWithEmployees = await Promise.all(
             sessionsData.map(async (session) => {
               const employeeData = await getData<Employee>("employees", { 
@@ -80,16 +80,16 @@ export default function MachinePage({ params }: PageProps) {
         }
 
         // Get employees
-        console.log("Çalışanlar yükleniyor...");
+        console.log("Loading employees...");
         const employeeData = await getActiveEmployees<Employee>();
-        console.log("Çalışan verileri:", employeeData);
+        console.log("Employee data:", employeeData);
         setAvailableEmployees(employeeData);
         
       } catch (error: unknown) {
-        console.error("Veri yükleme hatası:", error);
+        console.error("Data loading error:", error);
         const errorMessage =
-          error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu";
-        setMessage(`Hata: ${errorMessage}`);
+          error instanceof Error ? error.message : "Unknown error occurred";
+        setMessage(`Error: ${errorMessage}`);
       } finally {
         setLoading(false);
       }
@@ -100,15 +100,15 @@ export default function MachinePage({ params }: PageProps) {
 
   const addOperator = async () => {
     if (!selectedEmployeeId) {
-      setMessage("Lütfen bir işçi seçin");
+      setMessage("Please select an employee");
       return;
     }
 
-    // Makina pasif veya bakımdaysa operatör eklenemez
+    // Cannot add operator if machine is inactive or in maintenance
     if (machine?.status === "inactive" || machine?.status === "maintenance") {
-      const statusText = machine.status === "inactive" ? "pasif" : "bakımda";
+      const statusText = machine.status === "inactive" ? "inactive" : "in maintenance";
       setMessage(
-        `Makina ${statusText} durumunda olduğu için operatör eklenemez`
+        `Cannot add operator because the machine is ${statusText}`
       );
       return;
     }
@@ -123,12 +123,12 @@ export default function MachinePage({ params }: PageProps) {
       );
 
       if (isEmployeeActive) {
-        setMessage("Bu işçi zaten bu makinada çalışıyor");
+        setMessage("This employee is already working on this machine");
         return;
       }
 
       // Add new operator record using dataService
-      console.log("Operatör ekleniyor...");
+      console.log("Adding operator...");
       const sessionData = {
         employee_id: selectedEmployeeId,
         machine_id: machineId,
@@ -137,7 +137,7 @@ export default function MachinePage({ params }: PageProps) {
       };
       
       const resultData = await createData<WorkSession>("work_sessions", sessionData);
-      console.log("Operatör ekleme sonucu:", resultData);
+      console.log("Operator addition result:", resultData);
       
       if (resultData && resultData.length > 0) {
         // Get employee details
@@ -156,13 +156,13 @@ export default function MachinePage({ params }: PageProps) {
           newOperator as (WorkSession & { employee: Employee })
         ]);
         setSelectedEmployeeId("");
-        setMessage("Çalışan başarıyla eklendi");
+        setMessage("Employee added successfully");
       }
     } catch (error: unknown) {
-      console.error("Operatör ekleme hatası:", error);
+      console.error("Error adding operator:", error);
       const errorMessage =
-        error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu";
-      setMessage(`Hata: ${errorMessage}`);
+        error instanceof Error ? error.message : "Unknown error occurred";
+      setMessage(`Error: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -192,20 +192,20 @@ export default function MachinePage({ params }: PageProps) {
 
     try {
       // Update the operator record using dataService
-      console.log("Operatör çıkışı yapılıyor...");
+      console.log("Performing operator checkout...");
       const updatedSessionData = {
         end_time: new Date().toISOString(),
         is_active: false,
       };
       
       await updateData("work_sessions", updatedSessionData, { id: removeModal.operatorId });
-      console.log("Operatör çıkışı tamamlandı");
+      console.log("Operator checkout completed");
 
       // Update the active operators list
       setActiveOperators(
         activeOperators.filter((op) => op.id !== removeModal.operatorId)
       );
-      setMessage("Çalışan çıkışı başarıyla yapıldı");
+      setMessage("Employee removed successfully");
 
       // Close modal
       setRemoveModal({
@@ -214,10 +214,10 @@ export default function MachinePage({ params }: PageProps) {
         operatorName: "",
       });
     } catch (error: unknown) {
-      console.error("Operatör çıkarma hatası:", error);
+      console.error("Error removing operator:", error);
       const errorMessage =
-        error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu";
-      setMessage(`Hata: ${errorMessage}`);
+        error instanceof Error ? error.message : "Unknown error occurred";
+      setMessage(`Error: ${errorMessage}`);
     } finally {
       setRemoveLoading(false);
     }
@@ -228,10 +228,10 @@ export default function MachinePage({ params }: PageProps) {
   ) => {
     if (!machine) return;
 
-    // Makinada aktif çalışan varsa durum değiştirilemez
+    // Cannot change status if there are active employees on the machine
     if (activeOperators.length > 0) {
       setMessage(
-        "Makinada aktif çalışanlar var. Önce çalışanların çıkışını yapmalısınız."
+        "There are active employees on the machine. You must remove the employees first."
       );
       return;
     }
@@ -241,26 +241,26 @@ export default function MachinePage({ params }: PageProps) {
 
     try {
       // Update machine status using dataService
-      console.log("Makine durumu güncelleniyor...");
+      console.log("Updating machine status...");
       await updateData("machines", { status: newStatus }, { id: machineId });
-      console.log("Makine durumu güncellendi");
+      console.log("Machine status updated");
 
       // Update local state
       setMachine({ ...machine, status: newStatus });
       setMessage(
-        `Makina durumu "${
+        `Machine status updated to "${
           newStatus === "active"
-            ? "Aktif"
+            ? "Active"
             : newStatus === "maintenance"
-            ? "Bakımda"
-            : "Pasif"
-        }" olarak güncellendi`
+            ? "Maintenance"
+            : "Inactive"
+        }"`
       );
     } catch (error: unknown) {
-      console.error("Makine durumu güncelleme hatası:", error);
+      console.error("Error updating machine status:", error);
       const errorMessage =
-        error instanceof Error ? error.message : "Bilinmeyen bir hata oluştu";
-      setMessage(`Hata: ${errorMessage}`);
+        error instanceof Error ? error.message : "Unknown error occurred";
+      setMessage(`Error: ${errorMessage}`);
     } finally {
       setStatusLoading(false);
     }
@@ -269,7 +269,7 @@ export default function MachinePage({ params }: PageProps) {
   if (loading && !machine) {
     return (
       <div className="text-center py-8 text-gray-300 bg-gray-900 min-h-screen">
-        Yükleniyor...
+        Loading...
       </div>
     );
   }
@@ -277,7 +277,7 @@ export default function MachinePage({ params }: PageProps) {
   if (!machine) {
     return (
       <div className="text-center py-8 text-red-500 bg-gray-900 min-h-screen">
-        Makina bulunamadı. <Link href="/machines" className="underline">Geri dön</Link>
+        Machine not found. <Link href="/machines" className="underline">Go back</Link>
       </div>
     );
   }
@@ -290,7 +290,7 @@ export default function MachinePage({ params }: PageProps) {
           className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-medium py-2 px-4 rounded inline-flex items-center"
         >
           <span>&#8592;</span>
-          <span className="ml-2">Makinelere Dön</span>
+          <span className="ml-2">Go back to Machines</span>
         </Link>
       </div>
 
@@ -335,7 +335,7 @@ export default function MachinePage({ params }: PageProps) {
                   No: {machine.number || "-"}
                 </span>
                 <p className="text-gray-300">
-                  Konum: {machine.location || "Belirtilmemiş"}
+                  Location: {machine.location || "Unspecified"}
                 </p>
               </div>
               {machine.model && (
@@ -354,14 +354,14 @@ export default function MachinePage({ params }: PageProps) {
               }`}
             >
               {machine.status === "active"
-                ? "Aktif"
+                ? "Active"
                 : machine.status === "maintenance"
-                ? "Bakımda"
-                : "Pasif"}
+                ? "Maintenance"
+                : "Inactive"}
             </div>
             {canEdit && (
               <div className="flex flex-col mt-3 space-y-2">
-                <p className="text-sm text-gray-300 mb-1">Durum Değiştir:</p>
+                <p className="text-sm text-gray-300 mb-1">Update Status:</p>
                 <div className="flex space-x-2">
                   <button
                     onClick={() => updateMachineStatus("active")}
@@ -373,15 +373,15 @@ export default function MachinePage({ params }: PageProps) {
                     className="px-2 py-1 text-xs font-medium rounded bg-green-700 hover:bg-green-600 text-white disabled:opacity-50 disabled:cursor-not-allowed relative group"
                     title={
                       activeOperators.length > 0
-                        ? "Makinada aktif çalışanlar var"
+                        ? "There are active employees on the machine"
                         : ""
                     }
                   >
-                    Aktif
+                    Active
                     {activeOperators.length > 0 &&
                       machine.status !== "active" && (
                         <span className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                          Önce çalışanların çıkışını yapın
+                          Remove employees first
                         </span>
                       )}
                   </button>
@@ -395,15 +395,15 @@ export default function MachinePage({ params }: PageProps) {
                     className="px-2 py-1 text-xs font-medium rounded bg-yellow-700 hover:bg-yellow-600 text-white disabled:opacity-50 disabled:cursor-not-allowed relative group"
                     title={
                       activeOperators.length > 0
-                        ? "Makinada aktif çalışanlar var"
+                        ? "There are active employees on the machine"
                         : ""
                     }
                   >
-                    Bakımda
+                    Maintenance
                     {activeOperators.length > 0 &&
                       machine.status !== "maintenance" && (
                         <span className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                          Önce çalışanların çıkışını yapın
+                          Remove employees first
                         </span>
                       )}
                   </button>
@@ -417,15 +417,15 @@ export default function MachinePage({ params }: PageProps) {
                     className="px-2 py-1 text-xs font-medium rounded bg-red-700 hover:bg-red-600 text-white disabled:opacity-50 disabled:cursor-not-allowed relative group"
                     title={
                       activeOperators.length > 0
-                        ? "Makinada aktif çalışanlar var"
+                        ? "There are active employees on the machine"
                         : ""
                     }
                   >
-                    Pasif
+                    Inactive
                     {activeOperators.length > 0 &&
                       machine.status !== "inactive" && (
                         <span className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                          Önce çalışanların çıkışını yapın
+                          Remove employees first
                         </span>
                       )}
                   </button>
@@ -435,11 +435,11 @@ export default function MachinePage({ params }: PageProps) {
             {canDelete && (
               <button
                 onClick={() => {
-                  /* Silme işlemi */
+                  /* Delete operation */
                 }}
                 className="mt-4 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded"
               >
-                Makineyi Sil
+                Delete Machine
               </button>
             )}
           </div>
@@ -449,20 +449,20 @@ export default function MachinePage({ params }: PageProps) {
       {/* Active Operators Section */}
       <div className="bg-gray-800 shadow-md rounded-lg p-6 mb-8 border border-gray-700">
         <h2 className="text-xl font-semibold text-gray-100 mb-4">
-          Aktif Operatörler
+          Active Operators
         </h2>
 
         {activeOperators.length === 0 ? (
-          <p className="text-gray-400">Bu makinada aktif operatör bulunmuyor</p>
+          <p className="text-gray-400">No active operators on this machine</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full bg-gray-800">
               <thead>
                 <tr className="bg-gray-700 text-gray-300 uppercase text-sm leading-normal">
                   <th className="py-3 px-6 text-left">ID</th>
-                  <th className="py-3 px-6 text-left">İsim</th>
-                  <th className="py-3 px-6 text-left">Başlangıç Zamanı</th>
-                  <th className="py-3 px-6 text-center">İşlem</th>
+                  <th className="py-3 px-6 text-left">Name</th>
+                  <th className="py-3 px-6 text-left">Start Time</th>
+                  <th className="py-3 px-6 text-center">Action</th>
                 </tr>
               </thead>
               <tbody className="text-gray-300 text-sm">
@@ -496,7 +496,7 @@ export default function MachinePage({ params }: PageProps) {
                             clipRule="evenodd"
                           />
                         </svg>
-                        Çıkış Yap
+                        Checkout
                       </button>
                     </td>
                   </tr>
@@ -510,7 +510,7 @@ export default function MachinePage({ params }: PageProps) {
       {/* Add Operator Section */}
       <div className="bg-gray-800 shadow-md rounded-lg p-6 border border-gray-700">
         <h2 className="text-xl font-semibold text-gray-100 mb-4">
-          Operatör Ekle
+          Add Operator
         </h2>
 
         {machine.status !== "active" && (
@@ -528,9 +528,9 @@ export default function MachinePage({ params }: PageProps) {
                   clipRule="evenodd"
                 />
               </svg>
-              Makina şu anda{" "}
-              {machine.status === "inactive" ? "pasif" : "bakımda"} durumunda
-              olduğu için operatör ataması yapılamaz.
+              Machine is currently{" "}
+              {machine.status === "inactive" ? "inactive" : "in maintenance"}
+              and cannot add operators.
             </p>
           </div>
         )}
@@ -542,7 +542,7 @@ export default function MachinePage({ params }: PageProps) {
             disabled={machine?.status !== "active"}
             className="flex-grow md:w-2/3 px-3 py-2 bg-gray-700 border border-gray-600 text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <option value="">Çalışan Seçin</option>
+            <option value="">Select Employee</option>
             {availableEmployees.map((employee) => (
               <option key={employee.id} value={employee.id}>
                 {employee.id} - {employee.name}
@@ -579,7 +579,7 @@ export default function MachinePage({ params }: PageProps) {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                Ekleniyor...
+                Adding...
               </>
             ) : (
               <>
@@ -591,7 +591,7 @@ export default function MachinePage({ params }: PageProps) {
                 >
                   <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
                 </svg>
-                Operatör Ekle
+                Add Operator
               </>
             )}
           </button>
@@ -600,16 +600,16 @@ export default function MachinePage({ params }: PageProps) {
         {message && (
           <div
             className={`mt-4 p-3 text-sm rounded ${
-              message.includes("aktif çalışanlar var")
+              message.includes("active employees")
                 ? "bg-yellow-900/70 text-yellow-300 border border-yellow-800 flex items-start"
-                : message.includes("Hata")
+                : message.includes("Error")
                 ? "bg-red-900 text-red-300"
-                : message === "Bu işçi zaten bu makinada çalışıyor"
+                : message === "This employee is already working on this machine"
                 ? "bg-yellow-900 text-yellow-300"
                 : "bg-green-900 text-green-300"
             }`}
           >
-            {message.includes("aktif çalışanlar var") && (
+            {message.includes("active employees") && (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-5 w-5 mr-2 flex-shrink-0"
@@ -630,10 +630,10 @@ export default function MachinePage({ params }: PageProps) {
 
       <ConfirmModal
         isOpen={removeModal.isOpen}
-        title="Çalışan Çıkışı"
-        message={`"${removeModal.operatorName}" isimli çalışanın çıkışını yapmak istediğinizden emin misiniz?`}
-        confirmText="Evet, Çıkış Yap"
-        cancelText="İptal"
+        title="Employee Checkout"
+        message={`Are you sure you want to checkout "${removeModal.operatorName}"?`}
+        confirmText="Yes, Checkout"
+        cancelText="Cancel"
         onConfirm={removeOperator}
         onCancel={cancelRemoveOperator}
         isLoading={removeLoading}

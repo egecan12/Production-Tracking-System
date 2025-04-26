@@ -18,14 +18,14 @@ export default function MachinesPage() {
   useEffect(() => {
     async function fetchMachines() {
       try {
-        console.log("Makineler yükleniyor...");
-        // dataService'i kullan
+        console.log("Loading machines...");
+        // Use dataService
         const machinesData = await getActiveMachines<Machine>();
-        console.log("Yüklenen makine verileri:", machinesData);
+        console.log("Loaded machine data:", machinesData);
         
         if (machinesData) {
-          // Şimdilik operatör sayısını sıfır olarak ayarlayalım
-          // İlerde work_sessions API'ye eklenebilir
+          // For now, set operator count to zero
+          // In future, it can be added to work_sessions API
           const machinesWithCounts = machinesData.map(machine => {
             return { ...machine, operator_count: 0 };
           });
@@ -33,7 +33,7 @@ export default function MachinesPage() {
           setMachines(machinesWithCounts);
         }
       } catch (error) {
-        console.error("Makineleri getirme hatası:", error);
+        console.error("Error fetching machines:", error);
       } finally {
         setLoading(false);
       }
@@ -45,36 +45,36 @@ export default function MachinesPage() {
   return (
     <main className="container mx-auto px-4 py-8 bg-gray-900 min-h-screen">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-100">Makinalar</h1>
+        <h1 className="text-2xl font-bold text-gray-100">Machines</h1>
         <div className="flex space-x-3">
           {canAddMachine && (
             <Link
               href="/machines/add"
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
             >
-              Makine Ekle
+              Add Machine
             </Link>
           )}
           <Link
             href="/"
             className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-4 rounded"
           >
-            Ana Sayfa
+            Home
           </Link>
         </div>
       </div>
 
       {loading ? (
-        <div className="text-center py-4 text-gray-300">Yükleniyor...</div>
+        <div className="text-center py-4 text-gray-300">Loading...</div>
       ) : machines.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-gray-300 mb-4">Henüz makine bulunmuyor</p>
+          <p className="text-gray-300 mb-4">No machines available yet</p>
           {canAddMachine && (
             <Link
               href="/machines/add"
               className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded"
             >
-              Makine Ekle
+              Add Machine
             </Link>
           )}
         </div>
@@ -127,7 +127,7 @@ export default function MachinesPage() {
                       </span>
                     </div>
                     <p className="text-gray-300 mb-2">
-                      Konum: {machine.location || "Belirtilmemiş"}
+                      Location: {machine.location || "Not specified"}
                     </p>
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex items-center">
@@ -142,10 +142,10 @@ export default function MachinesPage() {
                         ></span>
                         <span className="text-sm capitalize text-gray-300">
                           {machine.status === "active"
-                            ? "Aktif"
+                            ? "Active"
                             : machine.status === "maintenance"
-                            ? "Bakımda"
-                            : "Pasif"}
+                            ? "Maintenance"
+                            : "Inactive"}
                         </span>
                       </div>
                       <div className="flex items-center text-sm">
@@ -170,7 +170,7 @@ export default function MachinesPage() {
                               : "text-gray-500"
                           }`}
                         >
-                          {machine.operator_count} Operatör
+                          {machine.operator_count} Operators
                         </span>
                       </div>
                     </div>
