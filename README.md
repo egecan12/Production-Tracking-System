@@ -8,8 +8,7 @@
 
 A comprehensive production management system for manufacturing companies, focused on order management, work orders, machine monitoring, and wire production calculation.
 
-![image](https://github.com/user-attachments/assets/0ed36683-b604-4325-9340-5587d8c88c57)
-
+<img src="https://github.com/user-attachments/assets/0ed36683-b604-4325-9340-5587d8c88c57" width="25%">
 
 </div>
 
