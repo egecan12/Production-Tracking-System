@@ -1,28 +1,33 @@
 # ProdTrack - Production Management System
 
 <div align="center">
+
+[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen.svg)](https://production-tracking-system-b4f4jp3eq.vercel.app/auth/system-login)
+[![Next.js](https://img.shields.io/badge/Next.js-Framework-blue.svg)](https://nextjs.org/)
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+
+A comprehensive production management system for manufacturing companies, focused on order management, work orders, machine monitoring, and wire production calculation.
+
+<div align="center">
   <img src="https://raw.githubusercontent.com/yourusername/production-tracking-system/main/public/favicon.svg" alt="ProdTrack Logo" width="120" height="120">
 </div>
 
-A comprehensive open-source production management system for manufacturing companies, focused on order management, work orders, machine monitoring, and wire production calculation.
+</div>
 
-## Features
+## ✨ Key Features
 
-- **Order Management**: Create and track customer orders
-- **Work Order Management**: Manage production work orders 
-- **Machine Management**: Track machine status and operation
-- **Employee Management**: Manage employee records and work assignments
-- **Customer Management**: Maintain customer database
-- **Wire Production Calculator**: Calculate and analyze wire production metrics
+- 📋 **Order Management**: Create and track customer orders
+- 📝 **Work Order Management**: Manage production work orders
+- 🔧 **Machine Management**: Track machine status and operation
+- 👥 **Employee Management**: Manage employee records and work assignments
+- 🏢 **Customer Management**: Maintain customer database
+- 🧮 **Wire Production Calculator**: Calculate and analyze wire production metrics
 
-## Tech Stack
+## 🚀 Quick Start
 
-- **Frontend**: Next.js, React, TypeScript, TailwindCSS
-- **Backend**: Next.js API Routes
-- **Database**: PostgreSQL (via Supabase)
-- **Authentication**: Custom authentication system
+Visit [ProdTrack Demo](https://production-tracking-system-b4f4jp3eq.vercel.app/auth/system-login) to see the application in action.
 
-## Setup Instructions
+## 💻 Setup Instructions
 
 1. Clone the repository:
 ```bash
@@ -36,108 +41,84 @@ npm install
 ```
 
 3. Set up environment variables:
-Create a `.env.local` file with the following variables:
-```
+```bash
+# Create a .env.local file with:
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
 4. Set up the database:
-- Create a Supabase project at https://supabase.com
-- Run the `schema.sql` file in the Supabase SQL editor
-- Create an admin user with secure credentials
+   - Create a Supabase project at https://supabase.com
+   - Run the `schema.sql` file in the Supabase SQL editor
+   - Create an admin user with secure credentials
 
 5. Run the development server:
 ```bash
 npm run dev
 ```
 
-## Open Source
+## 🛠️ Technology Stack
 
-This project is open source under the MIT License. Any company-specific information has been removed to make it a truly open-source solution for anyone to use and contribute to.
+### Frontend
+- Next.js and React for UI components
+- TypeScript for type safety
+- TailwindCSS for responsive styling
 
-## Rebranding
+### Backend
+- Next.js API Routes
+- Supabase for database and authentication
 
-This project was rebranded as ProdTrack with a new logo and identity focused on being an open-source solution for production tracking needs.
+### Database
+- PostgreSQL via Supabase
+- Row Level Security (RLS) policies
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-[MIT](LICENSE)
-
-## Veri Erişim Servisi (Data Service)
-
-Proje, veri tabanı erişimi için merkezi bir servis kullanmaktadır. Bu, Row Level Security (RLS) politikalarını güvenli bir şekilde yönetmeyi sağlar.
-
-### API Kullanımı
-
-Veritabanı işlemleri için merkezi API endpoint'i:
+## 📊 Data Service API
 
 ```typescript
-// Çalışan bilgilerini çekmek
+// Fetch employee data
 import { getData } from "./lib/dataService";
-
-// Tüm çalışanları getir
 const employees = await getData('employees');
 
-// Belirli filtrelere göre çalışanları getir
+// Filter active employees
 const activeEmployees = await getData('employees', { status: 'active' });
 
-// Yeni çalışan ekle
+// Create new employee
 import { createData } from "./lib/dataService";
-
 await createData('employees', {
   name: 'Ahmet Yılmaz',
   email: 'ahmet@example.com',
   phone: '5551234567'
 });
 
-// Çalışan bilgilerini güncelle
+// Update employee data
 import { updateData } from "./lib/dataService";
-
 await updateData('employees', 
-  { name: 'Ahmet Yılmaz (Üretim)' }, // Güncellenecek veriler
-  { id: '123e4567-e89b-12d3-a456-426614174000' } // Filtreler
+  { name: 'Ahmet Yılmaz (Üretim)' },
+  { id: '123e4567-e89b-12d3-a456-426614174000' }
 );
 
-// Çalışan sil
+// Delete employee
 import { deleteData } from "./lib/dataService";
-
 await deleteData('employees', { id: '123e4567-e89b-12d3-a456-426614174000' });
 ```
 
-### Supabase Row Level Security (RLS)
+## 🔒 Privacy & Security
 
-Bu proje Supabase veritabanı kullanmaktadır ve güvenlik için Row Level Security (RLS) politikalarını destekler.
+This project uses Supabase Row Level Security (RLS) for data protection. All data access is managed through secure API endpoints that properly handle authentication and authorization.
 
-RLS politikaları aktif olduğunda, client tarafından doğrudan veritabanına erişim kısıtlanır. Bu durumda iki seçenek vardır:
+## 🤝 Contributing
 
-1. **API üzerinden erişim (Önerilen)**: Bu projede kullanılan yöntem budur. Sunucu tarafında çalışan API endpoint'leri, service role key kullanarak RLS kısıtlamalarını güvenli bir şekilde aşar.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-2. **RLS Politikaları Yapılandırma**: Supabase konsolundan direkt erişim için RLS politikalarını ayarlanabilir.
+## 📝 License
 
-#### RLS Politikalarını Etkinleştirme/Düzenleme
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-Supabase konsolunda RLS politikalarını yönetmek için:
+## 👨‍💻 Author
 
-1. [Supabase Dashboard](https://app.supabase.io/)'a giriş yapın
-2. Projenizi seçin
-3. Sol menüden "Authentication" > "Policies" seçin
-4. İlgili tabloyu bulun ve politikalarını düzenleyin
+Egecan Kahyaoglu
 
-Örnek RLS politikası:
-
-```sql
--- Sadece giriş yapmış kullanıcılar kendi verilerini görebilir
-CREATE POLICY "Users can view own data" ON employees
-  FOR SELECT
-  USING (auth.uid() = user_id);
-
--- Sadece admin rolüne sahip kullanıcılar yeni kayıt ekleyebilir
-CREATE POLICY "Only admins can insert" ON employees
-  FOR INSERT
-  WITH CHECK (auth.jwt() ->> 'role' = 'admin');
-```
+---
+<div align="center">
+Made with ❤️ for manufacturing companies
+</div>
