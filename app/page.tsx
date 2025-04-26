@@ -5,7 +5,6 @@ import Logo from "./components/Logo";
 import Link from "next/link";
 import LogoutButton from "./components/LogoutButton";
 import { hasModuleAccess } from "./lib/authUtils";
-import { t } from "./lib/translations";
 
 // Define modules with English text
 const modules = [
