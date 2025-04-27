@@ -13,11 +13,13 @@ import {
 } from 'react-native';
 import { authApi } from '../../api/apiService';
 import LoginLogo from '../../components/LoginLogo';
+import { useNavigation } from '@react-navigation/native';
 
 const LoginScreen = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigation = useNavigation();
 
   const handleLogin = async () => {
     if (!username.trim() || !password) {
@@ -32,6 +34,13 @@ const LoginScreen = () => {
       
       if (!response.success) {
         Alert.alert('Login Failed', response.message || 'Invalid credentials');
+      } else {
+        // Force app to re-render by resetting navigation
+        // @ts-ignore
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Home' }],
+        });
       }
     } catch (error: any) {
       console.error('Login error:', error);

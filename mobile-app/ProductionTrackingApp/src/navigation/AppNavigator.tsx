@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { NavigationContainer, CommonActions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -201,21 +201,37 @@ const AppNavigator = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  const checkAuthStatus = useCallback(async () => {
+    try {
+      const authStatus = await authApi.isAuthenticated();
+      console.log('Auth status check:', authStatus);
+      setIsAuthenticated(authStatus);
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    // Check authentication status
-    const checkAuth = async () => {
-      try {
-        const authStatus = await authApi.isAuthenticated();
-        setIsAuthenticated(authStatus);
-      } catch (error) {
-        console.error('Auth check failed:', error);
-      } finally {
-        setIsLoading(false);
-      }
+    // Check authentication status when component mounts
+    checkAuthStatus();
+
+    // Also listen for auth state changes
+    const authListener = () => {
+      checkAuthStatus();
     };
 
-    checkAuth();
-  }, []);
+    // Check authentication periodically (every 2 seconds)
+    const intervalId = setInterval(() => {
+      checkAuthStatus();
+    }, 2000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [checkAuthStatus]);
 
   if (isLoading) {
     return (
