@@ -1,12 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation, CommonActions } from '@react-navigation/native';
+import { CompositeNavigationProp } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { authApi } from '../api/apiService';
-import { MainStackParamList } from '../navigation/AppNavigator';
+import { MainStackParamList, AuthStackParamList, MainTabParamList } from '../navigation/types';
 
-type MoreScreenNavigationProp = StackNavigationProp<MainStackParamList, 'More'>;
+type MoreScreenNavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<MainTabParamList, 'More'>,
+  NativeStackNavigationProp<AuthStackParamList>
+>;
 
 const MoreScreen = () => {
   const navigation = useNavigation<MoreScreenNavigationProp>();
@@ -14,11 +19,13 @@ const MoreScreen = () => {
   const handleLogout = async () => {
     try {
       await authApi.logout();
-      // Reset navigation to main tabs
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'MainTabs' }],
-      });
+      // Reset navigation to login screen using CommonActions
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'Login' as const }],
+        })
+      );
     } catch (error) {
       console.error('Logout error:', error);
     }

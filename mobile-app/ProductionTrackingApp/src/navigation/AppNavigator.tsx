@@ -1,174 +1,35 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { NavigationContainer, CommonActions, useNavigation } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { hasModuleAccess } from '../lib/authUtils';
 import { authApi } from '../api/apiService';
-import { ActivityIndicator, View, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { StackNavigationProp } from '@react-navigation/stack';
 
-// Import screens (these will be created later)
+// Import screens
 import LoginScreen from '../screens/auth/LoginScreen';
 import HomeScreen from '../screens/HomeScreen';
 import WorkOrdersScreen from '../screens/WorkOrdersScreen';
-import OrdersScreen from '../screens/OrdersScreen';
 import MachinesScreen from '../screens/MachinesScreen';
 import MachineDetailScreen from '../screens/MachineDetailScreen';
 import EmployeesScreen from '../screens/EmployeesScreen';
 import CustomersScreen from '../screens/CustomersScreen';
 import WireProductionScreen from '../screens/WireProductionScreen';
-import AddEditEmployeeScreen from '../screens/AddEditEmployeeScreen';
 import MoreScreen from '../screens/MoreScreen';
+import EmployeeDetailScreen from '../screens/EmployeeDetailScreen';
+import WorkOrderDetailScreen from '../screens/WorkOrderDetailScreen';
+import CustomerDetailScreen from '../screens/CustomerDetailScreen';
 
-// Define the navigation types
-export type AuthStackParamList = {
-  Login: undefined;
-};
+// Import types
+import { AuthStackParamList, MainStackParamList, MainTabParamList } from './types';
 
-export type MachinesStackParamList = {
-  MachinesList: undefined;
-  MachineDetail: { machineId: string };
-};
-
-export type MainStackParamList = {
-  MainTabs: undefined;
-  Home: undefined;
-  WorkOrders: undefined;
-  Orders: undefined;
-  Machines: undefined;
-  MachineDetail: { machineId: string };
-  Employees: undefined;
-  AddEditEmployee: { employeeId?: string; onEmployeeAdded?: () => void };
-  Customers: undefined;
-  WireProduction: undefined;
-  More: undefined;
-};
-
-export type TabParamList = {
-  Home: undefined;
-  WorkOrders: undefined;
-  Orders: undefined;
-  Machines: undefined;
-  More: undefined;
-};
-
-// Create the navigation stacks
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const MainStack = createNativeStackNavigator<MainStackParamList>();
-const MachinesStack = createNativeStackNavigator<MachinesStackParamList>();
-const Tab = createBottomTabNavigator<TabParamList>();
+const Tab = createBottomTabNavigator<MainTabParamList>();
 
-// Auth Stack Navigator
-const AuthNavigator = () => {
-  return (
-    <AuthStack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <AuthStack.Screen name="Login" component={LoginScreen} />
-    </AuthStack.Navigator>
-  );
-};
-
-// More Stack Navigator (for additional modules)
-const MoreNavigator = () => {
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
-
-  useEffect(() => {
-    const getUserRole = async () => {
-      const role = await AsyncStorage.getItem('userRole');
-      setUserRole(role);
-    };
-
-    getUserRole();
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      await authApi.logout();
-      // Reset navigation to login screen
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }],
-      });
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
-
-  return (
-    <MainStack.Navigator>
-      <MainStack.Screen 
-        name="Home" 
-        component={HomeScreen} 
-        options={{ 
-          title: 'Production Tracking',
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={handleLogout}
-              style={{ marginRight: 16 }}
-            >
-              <Icon name="logout" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
-          ),
-        }}
-      />
-      {hasModuleAccess('employees', userRole) && (
-        <MainStack.Screen 
-          name="Employees" 
-          component={EmployeesScreen} 
-          options={{ title: 'Employee Management' }}
-        />
-      )}
-      {hasModuleAccess('customers', userRole) && (
-        <MainStack.Screen 
-          name="Customers" 
-          component={CustomersScreen} 
-          options={{ title: 'Customer Management' }}
-        />
-      )}
-      {hasModuleAccess('wire-production', userRole) && (
-        <MainStack.Screen 
-          name="WireProduction" 
-          component={WireProductionScreen} 
-          options={{ title: 'Wire Production Calculator' }}
-        />
-      )}
-    </MainStack.Navigator>
-  );
-};
-
-// Machines Navigator
-const MachinesNavigator = () => {
-  return (
-    <MachinesStack.Navigator
-      screenOptions={{
-        headerStyle: {
-          backgroundColor: '#1E1E1E',
-        },
-        headerTintColor: '#FFFFFF',
-      }}
-    >
-      <MachinesStack.Screen
-        name="MachinesList"
-        component={MachinesScreen}
-        options={{ title: 'Machines' }}
-      />
-      <MachinesStack.Screen
-        name="MachineDetail"
-        component={MachineDetailScreen}
-        options={{ title: 'Machine Details' }}
-      />
-    </MachinesStack.Navigator>
-  );
-};
-
-// Tab Navigator
-const TabNavigator = () => {
+const MainTabs = () => {
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
@@ -183,12 +44,12 @@ const TabNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#5C6BC0',
-        tabBarInactiveTintColor: '#9E9E9E',
         tabBarStyle: {
           backgroundColor: '#1E1E1E',
-          borderTopColor: '#333333',
+          borderTopColor: '#333',
         },
+        tabBarActiveTintColor: '#3B82F6',
+        tabBarInactiveTintColor: '#9CA3AF',
         headerStyle: {
           backgroundColor: '#1E1E1E',
         },
@@ -199,7 +60,6 @@ const TabNavigator = () => {
         name="Home"
         component={HomeScreen}
         options={{
-          title: 'Home',
           tabBarIcon: ({ color, size }) => (
             <Icon name="home" size={size} color={color} />
           ),
@@ -211,22 +71,8 @@ const TabNavigator = () => {
           name="WorkOrders"
           component={WorkOrdersScreen}
           options={{
-            title: 'Work Orders',
             tabBarIcon: ({ color, size }) => (
               <Icon name="assignment" size={size} color={color} />
-            ),
-          }}
-        />
-      )}
-      
-      {hasModuleAccess('orders', userRole) && (
-        <Tab.Screen
-          name="Orders"
-          component={OrdersScreen}
-          options={{
-            title: 'Orders',
-            tabBarIcon: ({ color, size }) => (
-              <Icon name="shopping-cart" size={size} color={color} />
             ),
           }}
         />
@@ -235,12 +81,47 @@ const TabNavigator = () => {
       {hasModuleAccess('machines', userRole) && (
         <Tab.Screen
           name="Machines"
-          component={MachinesNavigator}
+          component={MachinesScreen}
           options={{
-            headerShown: false,
             title: 'Machines',
             tabBarIcon: ({ color, size }) => (
               <Icon name="build" size={size} color={color} />
+            ),
+          }}
+        />
+      )}
+      
+      {hasModuleAccess('employees', userRole) && (
+        <Tab.Screen
+          name="Employees"
+          component={EmployeesScreen}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="people" size={size} color={color} />
+            ),
+          }}
+        />
+      )}
+      
+      {hasModuleAccess('customers', userRole) && (
+        <Tab.Screen
+          name="Customers"
+          component={CustomersScreen}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="business" size={size} color={color} />
+            ),
+          }}
+        />
+      )}
+      
+      {hasModuleAccess('wire-production', userRole) && (
+        <Tab.Screen
+          name="WireProduction"
+          component={WireProductionScreen}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="settings" size={size} color={color} />
             ),
           }}
         />
@@ -250,7 +131,6 @@ const TabNavigator = () => {
         name="More"
         component={MoreScreen}
         options={{
-          title: 'More',
           tabBarIcon: ({ color, size }) => (
             <Icon name="more-horiz" size={size} color={color} />
           ),
@@ -260,17 +140,13 @@ const TabNavigator = () => {
   );
 };
 
-// Main App Navigator
 const AppNavigator = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState<string | null>(null);
 
   const checkAuthStatus = useCallback(async () => {
     try {
       const authStatus = await authApi.isAuthenticated();
-      const role = await AsyncStorage.getItem('userRole');
-      setUserRole(role);
       console.log('Auth status check:', authStatus);
       setIsAuthenticated(authStatus);
     } catch (error) {
@@ -296,43 +172,41 @@ const AppNavigator = () => {
   return (
     <NavigationContainer>
       {isAuthenticated ? (
-        <MainStack.Navigator>
-          <MainStack.Screen
-            name="MainTabs"
-            component={TabNavigator}
-            options={{ headerShown: false }}
+        <MainStack.Navigator
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          <MainStack.Screen name="MainTabs" component={MainTabs} />
+          <MainStack.Screen 
+            name="MachineDetail" 
+            component={MachineDetailScreen}
+            options={{ headerShown: true, title: 'Machine Details' }}
           />
-          {hasModuleAccess('employees', userRole) && (
-            <>
-              <MainStack.Screen 
-                name="Employees" 
-                component={EmployeesScreen} 
-                options={{ title: 'Employee Management' }}
-              />
-              <MainStack.Screen 
-                name="AddEditEmployee" 
-                component={AddEditEmployeeScreen} 
-                options={{ title: 'Add Employee' }}
-              />
-            </>
-          )}
-          {hasModuleAccess('customers', userRole) && (
-            <MainStack.Screen 
-              name="Customers" 
-              component={CustomersScreen} 
-              options={{ title: 'Customer Management' }}
-            />
-          )}
-          {hasModuleAccess('wire-production', userRole) && (
-            <MainStack.Screen 
-              name="WireProduction" 
-              component={WireProductionScreen} 
-              options={{ title: 'Wire Production Calculator' }}
-            />
-          )}
+          <MainStack.Screen 
+            name="EmployeeDetail" 
+            component={EmployeeDetailScreen}
+            options={{ headerShown: true, title: 'Employee Details' }}
+          />
+          <MainStack.Screen 
+            name="WorkOrderDetail" 
+            component={WorkOrderDetailScreen}
+            options={{ headerShown: true, title: 'Work Order Details' }}
+          />
+          <MainStack.Screen 
+            name="CustomerDetail" 
+            component={CustomerDetailScreen}
+            options={{ headerShown: true, title: 'Customer Details' }}
+          />
         </MainStack.Navigator>
       ) : (
-        <AuthNavigator />
+        <AuthStack.Navigator
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          <AuthStack.Screen name="Login" component={LoginScreen} />
+        </AuthStack.Navigator>
       )}
     </NavigationContainer>
   );
