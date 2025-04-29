@@ -183,4 +183,33 @@ export const machinesApi = {
   }),
 };
 
+export const employeesApi = {
+  getAll: () => fetchApi('/api/data', 'POST', { 
+    table: 'employees', 
+    action: 'read',
+    filters: { is_active: true }
+  }),
+  getById: (id: string) => fetchApi('/api/data', 'POST', { 
+    table: 'employees', 
+    action: 'read',
+    filters: { id }
+  }),
+  create: (data: any) => fetchApi('/api/data', 'POST', { 
+    table: 'employees', 
+    action: 'create',
+    data
+  }),
+  update: (id: string, data: any) => fetchApi('/api/data', 'POST', { 
+    table: 'employees', 
+    action: 'update',
+    data,
+    filters: { id }
+  }),
+  delete: (id: string) => fetchApi('/api/data', 'POST', { 
+    table: 'employees', 
+    action: 'delete',
+    filters: { id }
+  }),
+};
+
 // Add more API endpoints as needed for other modules 

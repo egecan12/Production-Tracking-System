@@ -30,6 +30,7 @@ export type MachinesStackParamList = {
 };
 
 export type MainStackParamList = {
+  MainTabs: undefined;
   Home: undefined;
   WorkOrders: undefined;
   Orders: undefined;
@@ -38,6 +39,7 @@ export type MainStackParamList = {
   Employees: undefined;
   Customers: undefined;
   WireProduction: undefined;
+  More: undefined;
 };
 
 export type TabParamList = {
@@ -234,10 +236,13 @@ const TabNavigator = () => {
 const AppNavigator = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   const checkAuthStatus = useCallback(async () => {
     try {
       const authStatus = await authApi.isAuthenticated();
+      const role = await AsyncStorage.getItem('userRole');
+      setUserRole(role);
       console.log('Auth status check:', authStatus);
       setIsAuthenticated(authStatus);
     } catch (error) {
@@ -249,35 +254,51 @@ const AppNavigator = () => {
   }, []);
 
   useEffect(() => {
-    // Check authentication status when component mounts
     checkAuthStatus();
-
-    // Also listen for auth state changes
-    const authListener = () => {
-      checkAuthStatus();
-    };
-
-    // Check authentication periodically (every 2 seconds)
-    const intervalId = setInterval(() => {
-      checkAuthStatus();
-    }, 2000);
-
-    return () => {
-      clearInterval(intervalId);
-    };
   }, [checkAuthStatus]);
 
   if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#121212' }}>
-        <ActivityIndicator size="large" color="#5C6BC0" />
+        <ActivityIndicator size="large" color="#3B82F6" />
       </View>
     );
   }
 
   return (
     <NavigationContainer>
-      {isAuthenticated ? <TabNavigator /> : <AuthNavigator />}
+      {isAuthenticated ? (
+        <MainStack.Navigator>
+          <MainStack.Screen
+            name="MainTabs"
+            component={TabNavigator}
+            options={{ headerShown: false }}
+          />
+          {hasModuleAccess('employees', userRole) && (
+            <MainStack.Screen 
+              name="Employees" 
+              component={EmployeesScreen} 
+              options={{ title: 'Employee Management' }}
+            />
+          )}
+          {hasModuleAccess('customers', userRole) && (
+            <MainStack.Screen 
+              name="Customers" 
+              component={CustomersScreen} 
+              options={{ title: 'Customer Management' }}
+            />
+          )}
+          {hasModuleAccess('wire-production', userRole) && (
+            <MainStack.Screen 
+              name="WireProduction" 
+              component={WireProductionScreen} 
+              options={{ title: 'Wire Production Calculator' }}
+            />
+          )}
+        </MainStack.Navigator>
+      ) : (
+        <AuthNavigator />
+      )}
     </NavigationContainer>
   );
 };

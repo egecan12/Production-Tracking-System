@@ -59,7 +59,7 @@ const WorkOrdersScreen = () => {
       let data = Array.isArray(response) ? response : response.data || [];
       
       // Tarihleri formatlayalım
-      data = data.map(order => ({
+      data = data.map((order: WorkOrder) => ({
         ...order,
         start_date: formatDate(order.start_date),
         due_date: formatDate(order.due_date)

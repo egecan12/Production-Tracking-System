@@ -14,12 +14,22 @@ import {
 import { authApi } from '../../api/apiService';
 import LoginLogo from '../../components/LoginLogo';
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+
+// Define the navigation param list
+type RootStackParamList = {
+  Home: undefined;
+  Login: undefined;
+  // Add other routes as needed
+};
+
+type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
 const LoginScreen = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigation = useNavigation();
+  const navigation = useNavigation<LoginScreenNavigationProp>();
 
   const handleLogin = async () => {
     if (!username.trim() || !password) {
@@ -35,8 +45,6 @@ const LoginScreen = () => {
       if (!response.success) {
         Alert.alert('Login Failed', response.message || 'Invalid credentials');
       } else {
-        // Force app to re-render by resetting navigation
-        // @ts-ignore
         navigation.reset({
           index: 0,
           routes: [{ name: 'Home' }],

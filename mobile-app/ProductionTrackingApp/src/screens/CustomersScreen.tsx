@@ -29,6 +29,7 @@ interface Customer {
   total_orders?: number;
   last_order_date?: string;
   logo_url?: string;
+  profile_image?: string;
 }
 
 const CustomersScreen = () => {
@@ -260,15 +261,15 @@ const CustomersScreen = () => {
     >
       <View style={styles.customerHeader}>
         <View style={styles.customerNameContainer}>
-          {item.logo_url ? (
+          {item.profile_image ? (
             <Image 
-              source={{ uri: item.logo_url }} 
-              style={styles.logoImage}
+              source={{ uri: item.profile_image }} 
+              style={styles.profileImage}
             />
           ) : (
-            <View style={styles.logoPlaceholder}>
-              <Text style={styles.logoInitial}>
-                {item.company_name.charAt(0)}
+            <View style={styles.profileInitials}>
+              <Text style={styles.initialsText}>
+                {(item.company_name || '').charAt(0)}
               </Text>
             </View>
           )}
@@ -556,13 +557,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  logoImage: {
+  profileImage: {
     width: 40,
     height: 40,
     borderRadius: 6,
     marginRight: 12,
   },
-  logoPlaceholder: {
+  profileInitials: {
     width: 40,
     height: 40,
     borderRadius: 6,
@@ -571,7 +572,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
-  logoInitial: {
+  initialsText: {
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',

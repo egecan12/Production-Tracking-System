@@ -292,7 +292,7 @@ const MachineDetailScreen = ({ route, navigation }: Props) => {
                 ]}
               >
                 <Text style={styles.statusText}>
-                  {machine.status.charAt(0).toUpperCase() + machine.status.slice(1)}
+                  {(machine.status || '').charAt(0).toUpperCase() + (machine.status || '').slice(1)}
                 </Text>
               </View>
             </View>

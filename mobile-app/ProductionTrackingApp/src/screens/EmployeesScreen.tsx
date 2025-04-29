@@ -11,9 +11,13 @@ import {
   RefreshControl,
   Alert,
   Image,
+  ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { hasModuleAccess } from '../lib/authUtils';
+import { employeesApi } from '../api/apiService';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 // Çalışan tipi tanımı
 interface Employee {
@@ -30,6 +34,7 @@ interface Employee {
 }
 
 const EmployeesScreen = () => {
+  const navigation = useNavigation<StackNavigationProp<any>>();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,65 +42,6 @@ const EmployeesScreen = () => {
   const [searchText, setSearchText] = useState('');
   const [canAddEdit, setCanAddEdit] = useState(false);
   const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
-
-  // Mock veri
-  const mockEmployees: Employee[] = [
-    {
-      id: '1',
-      first_name: 'Ali',
-      last_name: 'Yılmaz',
-      position: 'Üretim Operatörü',
-      department: 'Üretim',
-      email: 'ali.yilmaz@example.com',
-      phone: '555-123-4567',
-      hire_date: '2020-03-15',
-      status: 'Aktif'
-    },
-    {
-      id: '2',
-      first_name: 'Ayşe',
-      last_name: 'Demir',
-      position: 'Satış Uzmanı',
-      department: 'Satış',
-      email: 'ayse.demir@example.com',
-      phone: '555-234-5678',
-      hire_date: '2019-07-22',
-      status: 'Aktif'
-    },
-    {
-      id: '3',
-      first_name: 'Mehmet',
-      last_name: 'Kaya',
-      position: 'Mechanical Engineer',
-      department: 'Mühendislik',
-      email: 'mehmet.kaya@example.com',
-      phone: '555-345-6789',
-      hire_date: '2021-01-10',
-      status: 'Aktif'
-    },
-    {
-      id: '4',
-      first_name: 'Zeynep',
-      last_name: 'Şahin',
-      position: 'İK Uzmanı',
-      department: 'İnsan Kaynakları',
-      email: 'zeynep.sahin@example.com',
-      phone: '555-456-7890',
-      hire_date: '2018-11-05',
-      status: 'İzinde'
-    },
-    {
-      id: '5',
-      first_name: 'Mustafa',
-      last_name: 'Öztürk',
-      position: 'Bakım Teknisyeni',
-      department: 'Bakım',
-      email: 'mustafa.ozturk@example.com',
-      phone: '555-567-8901',
-      hire_date: '2019-04-18',
-      status: 'Aktif'
-    }
-  ];
 
   // Kullanıcı yetkilerini kontrol et
   useEffect(() => {
@@ -114,15 +60,19 @@ const EmployeesScreen = () => {
     try {
       setLoading(true);
       
-      // Gerçek API entegrasyonu buraya eklenecek
-      // Şimdilik mock veri kullanıyoruz
-      const data = mockEmployees.map(employee => ({
-        ...employee,
-        hire_date: formatDate(employee.hire_date)
-      }));
-      
-      setEmployees(data);
-      applyFilters(data, searchText, departmentFilter);
+      // Use the employees API instead of mock data
+      const response = await employeesApi.getAll();
+      if (response && response.success && response.data) {
+        const data = response.data.map((employee: any) => ({
+          ...employee,
+          hire_date: formatDate(employee.hire_date)
+        }));
+        
+        setEmployees(data);
+        applyFilters(data, searchText, departmentFilter);
+      } else {
+        throw new Error('Failed to load employees');
+      }
     } catch (error) {
       console.error('Error loading employees:', error);
       Alert.alert('Error', 'An error occurred while loading employees.');
@@ -174,7 +124,8 @@ const EmployeesScreen = () => {
   // Durum gösterimi
   const StatusBadge = ({ status }: { status: string }) => {
     let color;
-    switch (status.toLowerCase()) {
+    const statusLower = (status || '').toLowerCase();
+    switch (statusLower) {
       case 'active':
       case 'aktif':
         color = '#34D399'; // Yeşil
@@ -193,24 +144,28 @@ const EmployeesScreen = () => {
     
     return (
       <View style={[styles.statusBadge, { backgroundColor: color }]}>
-        <Text style={styles.statusText}>{status}</Text>
+        <Text style={styles.statusText}>{status || 'Unknown'}</Text>
       </View>
     );
   };
 
   // Yeni çalışan ekleme
   const handleAddEmployee = () => {
-    // Yeni çalışan ekleme sayfasına yönlendir
-    Alert.alert('Bilgi', 'Yeni çalışan ekleme sayfası henüz uygulanmadı.');
+    navigation.navigate('AddEditEmployee', {
+      onEmployeeAdded: () => {
+        loadEmployees();
+      }
+    });
   };
 
   // Çalışan detayını göster
   const handleViewEmployee = (employee: Employee) => {
-    // Çalışan detay sayfasına yönlendir
-    Alert.alert(
-      `${employee.first_name} ${employee.last_name}`,
-      `Pozisyon: ${employee.position}\nDepartman: ${employee.department}\nE-posta: ${employee.email || 'Belirtilmemiş'}\nTelefon: ${employee.phone || 'Belirtilmemiş'}\nİşe Alım Tarihi: ${employee.hire_date || 'Belirtilmemiş'}\nDurum: ${employee.status}`
-    );
+    navigation.navigate('EmployeeDetails', {
+      employeeId: employee.id,
+      onEmployeeUpdated: () => {
+        loadEmployees();
+      }
+    });
   };
 
   // Çalışanı sil
@@ -228,10 +183,13 @@ const EmployeesScreen = () => {
           style: 'destructive',
           onPress: async () => {
             try {
-              // Mock silme işlemi
-              const updatedEmployees = employees.filter(employee => employee.id !== id);
-              setEmployees(updatedEmployees);
-              Alert.alert('Success', 'Employee has been deleted.');
+              const response = await employeesApi.delete(id);
+              if (response && response.success) {
+                loadEmployees();
+                Alert.alert('Success', 'Employee has been deleted.');
+              } else {
+                throw new Error('Failed to delete employee');
+              }
             } catch (error) {
               console.error('Error deleting employee:', error);
               Alert.alert('Error', 'An error occurred while deleting the employee.');
@@ -266,7 +224,7 @@ const EmployeesScreen = () => {
           ) : (
             <View style={styles.profileInitials}>
               <Text style={styles.initialsText}>
-                {item.first_name.charAt(0)}{item.last_name.charAt(0)}
+                {(item.first_name || '').charAt(0)}{(item.last_name || '').charAt(0)}
               </Text>
             </View>
           )}
@@ -407,7 +365,11 @@ const ScrollablePills = ({
   onSelect: (value: string) => void
 }) => {
   return (
-    <View style={styles.pillsContainer}>
+    <ScrollView 
+      horizontal 
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.pillsContainer}
+    >
       {options.map(option => (
         <TouchableOpacity
           key={option.value}
@@ -427,7 +389,7 @@ const ScrollablePills = ({
           </Text>
         </TouchableOpacity>
       ))}
-    </View>
+    </ScrollView>
   );
 };
 
@@ -488,8 +450,7 @@ const styles = StyleSheet.create({
   },
   pillsContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    flex: 1,
+    paddingRight: 16,
   },
   pill: {
     backgroundColor: '#1E1E1E',
@@ -497,7 +458,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 16,
     marginRight: 8,
-    marginBottom: 8,
     borderWidth: 1,
     borderColor: '#333333',
   },
