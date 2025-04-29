@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { NavigationContainer, CommonActions } from '@react-navigation/native';
+import { NavigationContainer, CommonActions, useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { hasModuleAccess } from '../lib/authUtils';
 import { authApi } from '../api/apiService';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 // Import screens (these will be created later)
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -19,6 +20,7 @@ import EmployeesScreen from '../screens/EmployeesScreen';
 import CustomersScreen from '../screens/CustomersScreen';
 import WireProductionScreen from '../screens/WireProductionScreen';
 import AddEditEmployeeScreen from '../screens/AddEditEmployeeScreen';
+import MoreScreen from '../screens/MoreScreen';
 
 // Define the navigation types
 export type AuthStackParamList = {
@@ -74,6 +76,7 @@ const AuthNavigator = () => {
 // More Stack Navigator (for additional modules)
 const MoreNavigator = () => {
   const [userRole, setUserRole] = useState<string | null>(null);
+  const navigation = useNavigation<StackNavigationProp<MainStackParamList>>();
 
   useEffect(() => {
     const getUserRole = async () => {
@@ -84,12 +87,35 @@ const MoreNavigator = () => {
     getUserRole();
   }, []);
 
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+      // Reset navigation to login screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   return (
     <MainStack.Navigator>
       <MainStack.Screen 
         name="Home" 
         component={HomeScreen} 
-        options={{ title: 'Production Tracking' }}
+        options={{ 
+          title: 'Production Tracking',
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={handleLogout}
+              style={{ marginRight: 16 }}
+            >
+              <Icon name="logout" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          ),
+        }}
       />
       {hasModuleAccess('employees', userRole) && (
         <MainStack.Screen 
@@ -222,9 +248,9 @@ const TabNavigator = () => {
       
       <Tab.Screen
         name="More"
-        component={MoreNavigator}
+        component={MoreScreen}
         options={{
-          headerShown: false,
+          title: 'More',
           tabBarIcon: ({ color, size }) => (
             <Icon name="more-horiz" size={size} color={color} />
           ),
