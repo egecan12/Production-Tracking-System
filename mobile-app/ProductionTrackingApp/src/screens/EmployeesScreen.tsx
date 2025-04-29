@@ -18,22 +18,17 @@ import { hasModuleAccess } from '../lib/authUtils';
 import { employeesApi } from '../api/apiService';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { MainStackParamList } from '../navigation/AppNavigator';
+import { Employee } from '../types';
+import { getEmployees, deleteEmployee } from '../services/apiService';
+import { StatusBadge } from '../components/StatusBadge';
+import { Ionicons } from '@expo/vector-icons';
 
-// Employee type definition
-interface Employee {
-  id: string;
-  name: string;
-  position: string;
-  department: string;
-  email?: string;
-  phone?: string;
-  hire_date?: string;
-  profile_image?: string;
-  status: string;
-}
+type Props = {
+  navigation: StackNavigationProp<MainStackParamList, 'Employees'>;
+};
 
-const EmployeesScreen = () => {
-  const navigation = useNavigation<StackNavigationProp<any>>();
+const EmployeesScreen: React.FC<Props> = ({ navigation }) => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -286,15 +281,13 @@ const EmployeesScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Employees</Text>
-        {canAddEdit && (
-          <TouchableOpacity 
-            style={styles.addButton}
-            onPress={handleAddEmployee}
-          >
-            <Icon name="add" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-        )}
+        <Text style={styles.title}>Employee Management</Text>
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={handleAddEmployee}
+        >
+          <Ionicons name="add" size={24} color="white" />
+        </TouchableOpacity>
       </View>
       
       <View style={styles.searchContainer}>

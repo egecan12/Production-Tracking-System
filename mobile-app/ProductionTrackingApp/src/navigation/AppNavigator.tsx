@@ -18,6 +18,7 @@ import MachineDetailScreen from '../screens/MachineDetailScreen';
 import EmployeesScreen from '../screens/EmployeesScreen';
 import CustomersScreen from '../screens/CustomersScreen';
 import WireProductionScreen from '../screens/WireProductionScreen';
+import AddEditEmployeeScreen from '../screens/AddEditEmployeeScreen';
 
 // Define the navigation types
 export type AuthStackParamList = {
@@ -37,6 +38,7 @@ export type MainStackParamList = {
   Machines: undefined;
   MachineDetail: { machineId: string };
   Employees: undefined;
+  AddEditEmployee: { employeeId?: string; onEmployeeAdded?: () => void };
   Customers: undefined;
   WireProduction: undefined;
   More: undefined;
@@ -275,11 +277,18 @@ const AppNavigator = () => {
             options={{ headerShown: false }}
           />
           {hasModuleAccess('employees', userRole) && (
-            <MainStack.Screen 
-              name="Employees" 
-              component={EmployeesScreen} 
-              options={{ title: 'Employee Management' }}
-            />
+            <>
+              <MainStack.Screen 
+                name="Employees" 
+                component={EmployeesScreen} 
+                options={{ title: 'Employee Management' }}
+              />
+              <MainStack.Screen 
+                name="AddEditEmployee" 
+                component={AddEditEmployeeScreen} 
+                options={{ title: 'Add Employee' }}
+              />
+            </>
           )}
           {hasModuleAccess('customers', userRole) && (
             <MainStack.Screen 
