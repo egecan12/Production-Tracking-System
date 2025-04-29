@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Role-based module access
 export const moduleAccess = {
   // Define allowed roles for each module
-  workorders: ['admin', 'manager', 'production'],
+  'work-orders': ['admin', 'manager', 'production'],
   orders: ['admin', 'manager', 'sales'],
   machines: ['admin', 'manager', 'maintenance', 'user'],
   employees: ['admin', 'manager', 'hr'],

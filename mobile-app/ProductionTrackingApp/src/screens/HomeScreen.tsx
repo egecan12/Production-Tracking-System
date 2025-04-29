@@ -26,7 +26,7 @@ type ModuleItem = {
 // Define modules with English text
 const modules: ModuleItem[] = [
   {
-    id: 'workorders',
+    id: 'work-orders',
     route: 'WorkOrders',
     title: 'Work Order Management',
     description: 'Create work orders, track them and monitor production metrics',

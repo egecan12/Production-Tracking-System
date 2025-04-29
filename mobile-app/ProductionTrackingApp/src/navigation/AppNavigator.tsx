@@ -143,7 +143,7 @@ const TabNavigator = () => {
         }}
       />
       
-      {hasModuleAccess('workorders', userRole) && (
+      {hasModuleAccess('work-orders', userRole) && (
         <Tab.Screen
           name="WorkOrders"
           component={WorkOrdersScreen}

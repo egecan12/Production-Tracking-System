@@ -26,15 +26,39 @@ const fetchApi = async (
     }
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-    const data = await response.json();
-
+    
+    // Handle 404 and other error status codes
     if (!response.ok) {
-      throw new Error(data.message || 'An error occurred');
+      if (response.status === 404) {
+        console.warn(`Endpoint ${endpoint} not found (404)`);
+        return method === 'GET' ? [] : { success: false, message: 'Resource not found' };
+      }
+      const errorText = await response.text();
+      try {
+        // Try to parse error as JSON
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.message || `Error ${response.status}: ${response.statusText}`);
+      } catch (parseError) {
+        // If can't parse as JSON, use text
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
     }
-
-    return data;
+    
+    // Safe JSON parsing
+    try {
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
+      return data;
+    } catch (parseError) {
+      console.error('Failed to parse response as JSON:', parseError);
+      return method === 'GET' ? [] : { success: false, message: 'Invalid response format' };
+    }
   } catch (error) {
     console.error('API call failed:', error);
+    // Return empty array for GET requests to prevent app crashes
+    if (method === 'GET') {
+      return [];
+    }
     throw error;
   }
 };
@@ -75,11 +99,11 @@ export const authApi = {
 
 // Other API endpoints can be added here as needed, following the same pattern
 export const workOrdersApi = {
-  getAll: () => fetchApi('/workorders'),
-  getById: (id: string) => fetchApi(`/workorders/${id}`),
-  create: (data: any) => fetchApi('/workorders', 'POST', data),
-  update: (id: string, data: any) => fetchApi(`/workorders/${id}`, 'PUT', data),
-  delete: (id: string) => fetchApi(`/workorders/${id}`, 'DELETE'),
+  getAll: () => fetchApi('/work-orders'),
+  getById: (id: string) => fetchApi(`/work-orders/${id}`),
+  create: (data: any) => fetchApi('/work-orders', 'POST', data),
+  update: (id: string, data: any) => fetchApi(`/work-orders/${id}`, 'PUT', data),
+  delete: (id: string) => fetchApi(`/work-orders/${id}`, 'DELETE'),
 };
 
 export const ordersApi = {
