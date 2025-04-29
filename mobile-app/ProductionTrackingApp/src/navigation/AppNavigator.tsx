@@ -14,6 +14,7 @@ import HomeScreen from '../screens/HomeScreen';
 import WorkOrdersScreen from '../screens/WorkOrdersScreen';
 import OrdersScreen from '../screens/OrdersScreen';
 import MachinesScreen from '../screens/MachinesScreen';
+import MachineDetailScreen from '../screens/MachineDetailScreen';
 import EmployeesScreen from '../screens/EmployeesScreen';
 import CustomersScreen from '../screens/CustomersScreen';
 import WireProductionScreen from '../screens/WireProductionScreen';
@@ -23,11 +24,17 @@ export type AuthStackParamList = {
   Login: undefined;
 };
 
+export type MachinesStackParamList = {
+  MachinesList: undefined;
+  MachineDetail: { machineId: string };
+};
+
 export type MainStackParamList = {
   Home: undefined;
   WorkOrders: undefined;
   Orders: undefined;
   Machines: undefined;
+  MachineDetail: { machineId: string };
   Employees: undefined;
   Customers: undefined;
   WireProduction: undefined;
@@ -44,6 +51,7 @@ export type TabParamList = {
 // Create the navigation stacks
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const MainStack = createNativeStackNavigator<MainStackParamList>();
+const MachinesStack = createNativeStackNavigator<MachinesStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
 // Auth Stack Navigator
@@ -101,6 +109,31 @@ const MoreNavigator = () => {
         />
       )}
     </MainStack.Navigator>
+  );
+};
+
+// Machines Navigator
+const MachinesNavigator = () => {
+  return (
+    <MachinesStack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: '#1E1E1E',
+        },
+        headerTintColor: '#FFFFFF',
+      }}
+    >
+      <MachinesStack.Screen
+        name="MachinesList"
+        component={MachinesScreen}
+        options={{ title: 'Machines' }}
+      />
+      <MachinesStack.Screen
+        name="MachineDetail"
+        component={MachineDetailScreen}
+        options={{ title: 'Machine Details' }}
+      />
+    </MachinesStack.Navigator>
   );
 };
 
@@ -172,8 +205,9 @@ const TabNavigator = () => {
       {hasModuleAccess('machines', userRole) && (
         <Tab.Screen
           name="Machines"
-          component={MachinesScreen}
+          component={MachinesNavigator}
           options={{
+            headerShown: false,
             title: 'Machines',
             tabBarIcon: ({ color, size }) => (
               <Icon name="build" size={size} color={color} />

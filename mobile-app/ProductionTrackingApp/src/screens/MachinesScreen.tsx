@@ -12,9 +12,12 @@ import {
   Alert,
   Image,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { machinesApi } from '../api/apiService';
 import { hasMachinePermission } from '../lib/authUtils';
+import { MachinesStackParamList } from '../navigation/AppNavigator';
 
 // Makine tipi tanımı
 interface Machine {
@@ -33,6 +36,7 @@ interface Machine {
 }
 
 const MachinesScreen = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<MachinesStackParamList>>();
   const [machines, setMachines] = useState<Machine[]>([]);
   const [filteredMachines, setFilteredMachines] = useState<Machine[]>([]);
   const [loading, setLoading] = useState(true);
@@ -162,11 +166,8 @@ const MachinesScreen = () => {
 
   // Makine detayını göster
   const handleViewMachine = (machine: Machine) => {
-    // Makine detay sayfasına yönlendir
-    Alert.alert(
-      `Makine: ${machine.name}`,
-      `Model: ${machine.model}\nSeri No: ${machine.serial_number}\nDurum: ${machine.status}\nKonum: ${machine.location || 'Belirtilmemiş'}\nOperatör: ${machine.operator_name || 'Atanmamış'}\nSon Bakım: ${machine.last_maintenance || 'Belirtilmemiş'}\n\nDetaylar: ${machine.details || 'Bilgi yok'}`
-    );
+    // Navigate to machine detail screen
+    navigation.navigate('MachineDetail', { machineId: machine.id });
   };
 
   // Makineyi sil
