@@ -19,11 +19,10 @@ import { employeesApi } from '../api/apiService';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 
-// Çalışan tipi tanımı
+// Employee type definition
 interface Employee {
   id: string;
-  first_name: string;
-  last_name: string;
+  name: string;
   position: string;
   department: string;
   email?: string;
@@ -43,7 +42,7 @@ const EmployeesScreen = () => {
   const [canAddEdit, setCanAddEdit] = useState(false);
   const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
 
-  // Kullanıcı yetkilerini kontrol et
+  // Check user permissions
   useEffect(() => {
     const checkPermissions = async () => {
       const hasAccess = hasModuleAccess('employees', 'hr') || 
@@ -55,18 +54,22 @@ const EmployeesScreen = () => {
     checkPermissions();
   }, []);
 
-  // Çalışanları yükle
+  // Load employees
   const loadEmployees = async () => {
     try {
       setLoading(true);
       
-      // Use the employees API instead of mock data
       const response = await employeesApi.getAll();
+      console.log('API Response:', response); // Debug log
+      
       if (response && response.success && response.data) {
-        const data = response.data.map((employee: any) => ({
-          ...employee,
-          hire_date: formatDate(employee.hire_date)
-        }));
+        const data = response.data.map((employee: any) => {
+          console.log('Employee data:', employee); // Debug log for each employee
+          return {
+            ...employee,
+            hire_date: formatDate(employee.hire_date)
+          };
+        });
         
         setEmployees(data);
         applyFilters(data, searchText, departmentFilter);
@@ -82,26 +85,26 @@ const EmployeesScreen = () => {
     }
   };
 
-  // İlk yükleme
+  // Initial load
   useEffect(() => {
     loadEmployees();
   }, []);
 
-  // Filtre fonksiyonu
+  // Filter function
   const applyFilters = (data: Employee[], search: string, department: string | null) => {
     let result = [...data];
     
-    // Metin araması
+    // Text search
     if (search) {
       const searchLower = search.toLowerCase();
       result = result.filter(employee => 
-        `${employee.first_name} ${employee.last_name}`.toLowerCase().includes(searchLower) ||
+        employee.name.toLowerCase().includes(searchLower) ||
         employee.position.toLowerCase().includes(searchLower) ||
         (employee.email && employee.email.toLowerCase().includes(searchLower))
       );
     }
     
-    // Departman filtresi
+    // Department filter
     if (department) {
       result = result.filter(employee => employee.department === department);
     }
@@ -109,37 +112,37 @@ const EmployeesScreen = () => {
     setFilteredEmployees(result);
   };
 
-  // Arama değiştiğinde
+  // When search/filter changes
   useEffect(() => {
     applyFilters(employees, searchText, departmentFilter);
   }, [searchText, departmentFilter, employees]);
 
-  // Tarih formatı
+  // Date format
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
     return date.toLocaleDateString();
   };
 
-  // Durum gösterimi
+  // Status display
   const StatusBadge = ({ status }: { status: string }) => {
     let color;
     const statusLower = (status || '').toLowerCase();
     switch (statusLower) {
       case 'active':
       case 'aktif':
-        color = '#34D399'; // Yeşil
+        color = '#34D399'; // Green
         break;
       case 'on leave':
       case 'izinde':
-        color = '#FCD34D'; // Sarı
+        color = '#FCD34D'; // Yellow
         break;
       case 'suspended':
       case 'askıda':
-        color = '#F87171'; // Kırmızı
+        color = '#F87171'; // Red
         break;
       default:
-        color = '#9CA3AF'; // Gri
+        color = '#9CA3AF'; // Gray
     }
     
     return (
@@ -149,7 +152,7 @@ const EmployeesScreen = () => {
     );
   };
 
-  // Yeni çalışan ekleme
+  // Add new employee
   const handleAddEmployee = () => {
     navigation.navigate('AddEditEmployee', {
       onEmployeeAdded: () => {
@@ -158,7 +161,7 @@ const EmployeesScreen = () => {
     });
   };
 
-  // Çalışan detayını göster
+  // View employee details
   const handleViewEmployee = (employee: Employee) => {
     navigation.navigate('EmployeeDetails', {
       employeeId: employee.id,
@@ -168,7 +171,7 @@ const EmployeesScreen = () => {
     });
   };
 
-  // Çalışanı sil
+  // Delete employee
   const handleDeleteEmployee = (id: string) => {
     Alert.alert(
       'Confirmation',
@@ -200,85 +203,90 @@ const EmployeesScreen = () => {
     );
   };
 
-  // Departman filtresini değiştir
+  // Change department filter
   const changeDepartmentFilter = (department: string | null) => {
     setDepartmentFilter(current => current === department ? null : department);
   };
 
-  // Benzersiz departmanları alın
+  // Get unique departments
   const uniqueDepartments = Array.from(new Set(employees.map(emp => emp.department)));
 
-  // Çalışan öğesi render fonksiyonu
-  const renderEmployee = ({ item }: { item: Employee }) => (
-    <TouchableOpacity 
-      style={styles.employeeItem}
-      onPress={() => handleViewEmployee(item)}
-    >
-      <View style={styles.employeeHeader}>
-        <View style={styles.employeeNameContainer}>
-          {item.profile_image ? (
-            <Image 
-              source={{ uri: item.profile_image }} 
-              style={styles.profileImage}
-            />
-          ) : (
-            <View style={styles.profileInitials}>
-              <Text style={styles.initialsText}>
-                {(item.first_name || '').charAt(0)}{(item.last_name || '').charAt(0)}
+  // Employee item render function
+  const renderEmployee = ({ item }: { item: Employee }) => {
+    console.log('Rendering employee:', item); // Debug log for rendering
+    return (
+      <TouchableOpacity 
+        style={styles.employeeItem}
+        onPress={() => handleViewEmployee(item)}
+      >
+        <View style={styles.employeeHeader}>
+          <View style={styles.employeeNameContainer}>
+            {item.profile_image ? (
+              <Image 
+                source={{ uri: item.profile_image }} 
+                style={styles.profileImage}
+              />
+            ) : (
+              <View style={styles.profileInitials}>
+                <Text style={styles.initialsText}>
+                  {(item.name || '').charAt(0)}
+                </Text>
+              </View>
+            )}
+            <View>
+              <Text style={styles.employeeName}>
+                {item.name || 'No Name'}
               </Text>
+              <Text style={styles.position}>{item.position || 'No Position'}</Text>
+            </View>
+          </View>
+          <StatusBadge status={item.status} />
+        </View>
+        
+        <View style={styles.employeeDetails}>
+          <View style={styles.detailItem}>
+            <Icon name="business" size={14} color="#9CA3AF" />
+            <Text style={styles.detailText}>{item.department}</Text>
+          </View>
+          
+          {item.email && (
+            <View style={styles.detailItem}>
+              <Icon name="email" size={14} color="#9CA3AF" />
+              <Text style={styles.detailText}>{item.email}</Text>
             </View>
           )}
-          <View>
-            <Text style={styles.employeeName}>{item.first_name} {item.last_name}</Text>
-            <Text style={styles.position}>{item.position}</Text>
-          </View>
+          
+          {item.phone && (
+            <View style={styles.detailItem}>
+              <Icon name="phone" size={14} color="#9CA3AF" />
+              <Text style={styles.detailText}>{item.phone}</Text>
+            </View>
+          )}
+          
+          {item.hire_date && (
+            <View style={styles.detailItem}>
+              <Icon name="event" size={14} color="#9CA3AF" />
+              <Text style={styles.detailText}>Hire Date: {item.hire_date}</Text>
+            </View>
+          )}
         </View>
-        <StatusBadge status={item.status} />
-      </View>
-      
-      <View style={styles.employeeDetails}>
-        <View style={styles.detailItem}>
-          <Icon name="business" size={14} color="#9CA3AF" />
-          <Text style={styles.detailText}>{item.department}</Text>
-        </View>
         
-        {item.email && (
-          <View style={styles.detailItem}>
-            <Icon name="email" size={14} color="#9CA3AF" />
-            <Text style={styles.detailText}>{item.email}</Text>
-          </View>
+        {canAddEdit && (
+          <TouchableOpacity 
+            style={styles.deleteButton}
+            onPress={() => handleDeleteEmployee(item.id)}
+          >
+            <Icon name="delete" size={18} color="#F87171" />
+          </TouchableOpacity>
         )}
-        
-        {item.phone && (
-          <View style={styles.detailItem}>
-            <Icon name="phone" size={14} color="#9CA3AF" />
-            <Text style={styles.detailText}>{item.phone}</Text>
-          </View>
-        )}
-        
-        {item.hire_date && (
-          <View style={styles.detailItem}>
-            <Icon name="event" size={14} color="#9CA3AF" />
-            <Text style={styles.detailText}>İşe Alım: {item.hire_date}</Text>
-          </View>
-        )}
-      </View>
-      
-      {canAddEdit && (
-        <TouchableOpacity 
-          style={styles.deleteButton}
-          onPress={() => handleDeleteEmployee(item.id)}
-        >
-          <Icon name="delete" size={18} color="#F87171" />
-        </TouchableOpacity>
-      )}
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Çalışanlar</Text>
+        <Text style={styles.title}>Employees</Text>
         {canAddEdit && (
           <TouchableOpacity 
             style={styles.addButton}
@@ -293,7 +301,7 @@ const EmployeesScreen = () => {
         <Icon name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Çalışan ara..."
+          placeholder="Search employees..."
           placeholderTextColor="#9CA3AF"
           value={searchText}
           onChangeText={setSearchText}
@@ -306,7 +314,7 @@ const EmployeesScreen = () => {
       </View>
       
       <View style={styles.filterContainer}>
-        <Text style={styles.filterLabel}>Departman:</Text>
+        <Text style={styles.filterLabel}>Department:</Text>
         <ScrollablePills
           options={uniqueDepartments.map(dept => ({ value: dept, label: dept }))}
           selectedValue={departmentFilter}
@@ -325,8 +333,8 @@ const EmployeesScreen = () => {
               <Icon name="people" size={48} color="#6B7280" />
               <Text style={styles.emptyText}>
                 {searchText || departmentFilter
-                  ? 'Arama kriterlerine uygun çalışan bulunamadı.' 
-                  : 'Henüz çalışan bulunmuyor.'}
+                  ? 'No employees found matching your search criteria.' 
+                  : 'No employees found.'}
               </Text>
             </View>
           ) : (
@@ -354,7 +362,7 @@ const EmployeesScreen = () => {
   );
 };
 
-// Kaydırılabilir filtreleme pilleri
+// Scrollable filtering pills
 const ScrollablePills = ({ 
   options, 
   selectedValue, 
