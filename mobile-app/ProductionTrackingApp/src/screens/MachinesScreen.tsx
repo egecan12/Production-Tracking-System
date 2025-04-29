@@ -62,7 +62,8 @@ const MachinesScreen = () => {
       const response = await machinesApi.getAll();
       
       // Yanıt formatını kontrol et ve düzenle
-      let data = Array.isArray(response) ? response : response.data || [];
+      let data = response.data || [];
+      console.log("Machines data received:", data);
       
       // Tarihleri formatlayalım
       data = data.map((machine: Machine) => ({
@@ -183,10 +184,14 @@ const MachinesScreen = () => {
           style: 'destructive',
           onPress: async () => {
             try {
-              await machinesApi.delete(id);
-              // Listeden kaldır
-              setMachines(machines.filter(machine => machine.id !== id));
-              Alert.alert('Başarılı', 'Makine silindi.');
+              const response = await machinesApi.delete(id);
+              if (response.success) {
+                // Listeden kaldır
+                setMachines(machines.filter(machine => machine.id !== id));
+                Alert.alert('Başarılı', 'Makine silindi.');
+              } else {
+                throw new Error(response.error || 'Silme işlemi başarısız');
+              }
             } catch (error) {
               console.error('Makine silinirken hata:', error);
               Alert.alert('Hata', 'Makine silinirken bir hata oluştu.');

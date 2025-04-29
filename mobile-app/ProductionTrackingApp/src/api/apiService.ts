@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Base URL for the Next.js API - this should be configurable
-const API_BASE_URL = 'http://172.20.10.2:3000/api';
+const API_BASE_URL = 'http://172.20.10.2:3000';
 
 // Generic fetch function with error handling
 const fetchApi = async (
@@ -66,7 +66,7 @@ const fetchApi = async (
 // Auth API
 export const authApi = {
   login: async (username: string, password: string) => {
-    const data = await fetchApi('/system-auth', 'POST', { username, password });
+    const data = await fetchApi('/api/system-auth', 'POST', { username, password });
     
     if (data.success) {
       // Store auth data in AsyncStorage
@@ -99,27 +99,88 @@ export const authApi = {
 
 // Other API endpoints can be added here as needed, following the same pattern
 export const workOrdersApi = {
-  getAll: () => fetchApi('/work-orders'),
-  getById: (id: string) => fetchApi(`/work-orders/${id}`),
-  create: (data: any) => fetchApi('/work-orders', 'POST', data),
-  update: (id: string, data: any) => fetchApi(`/work-orders/${id}`, 'PUT', data),
-  delete: (id: string) => fetchApi(`/work-orders/${id}`, 'DELETE'),
+  getAll: () => fetchApi('/api/data', 'POST', { 
+    table: 'work_orders', 
+    action: 'read' 
+  }),
+  getById: (id: string) => fetchApi('/api/data', 'POST', { 
+    table: 'work_orders', 
+    action: 'read',
+    filters: { id }
+  }),
+  create: (data: any) => fetchApi('/api/data', 'POST', { 
+    table: 'work_orders', 
+    action: 'create',
+    data
+  }),
+  update: (id: string, data: any) => fetchApi('/api/data', 'POST', { 
+    table: 'work_orders', 
+    action: 'update',
+    data,
+    filters: { id }
+  }),
+  delete: (id: string) => fetchApi('/api/data', 'POST', { 
+    table: 'work_orders', 
+    action: 'delete',
+    filters: { id }
+  }),
 };
 
 export const ordersApi = {
-  getAll: () => fetchApi('/orders'),
-  getById: (id: string) => fetchApi(`/orders/${id}`),
-  create: (data: any) => fetchApi('/orders', 'POST', data),
-  update: (id: string, data: any) => fetchApi(`/orders/${id}`, 'PUT', data),
-  delete: (id: string) => fetchApi(`/orders/${id}`, 'DELETE'),
+  getAll: () => fetchApi('/api/data', 'POST', { 
+    table: 'orders', 
+    action: 'read' 
+  }),
+  getById: (id: string) => fetchApi('/api/data', 'POST', { 
+    table: 'orders', 
+    action: 'read',
+    filters: { id }
+  }),
+  create: (data: any) => fetchApi('/api/data', 'POST', { 
+    table: 'orders', 
+    action: 'create',
+    data
+  }),
+  update: (id: string, data: any) => fetchApi('/api/data', 'POST', { 
+    table: 'orders', 
+    action: 'update',
+    data,
+    filters: { id }
+  }),
+  delete: (id: string) => fetchApi('/api/data', 'POST', { 
+    table: 'orders', 
+    action: 'delete',
+    filters: { id }
+  }),
 };
 
 export const machinesApi = {
-  getAll: () => fetchApi('/machines'),
-  getById: (id: string) => fetchApi(`/machines/${id}`),
-  create: (data: any) => fetchApi('/machines', 'POST', data),
-  update: (id: string, data: any) => fetchApi(`/machines/${id}`, 'PUT', data),
-  delete: (id: string) => fetchApi(`/machines/${id}`, 'DELETE'),
+  getAll: () => fetchApi('/api/data', 'POST', { 
+    table: 'machines', 
+    action: 'read',
+    filters: { is_active: true }
+  }),
+  getById: (id: string) => fetchApi('/api/data', 'POST', { 
+    table: 'machines', 
+    action: 'read',
+    filters: { id }
+  }),
+  create: (data: any) => fetchApi('/api/data', 'POST', { 
+    table: 'machines', 
+    action: 'create',
+    data
+  }),
+  update: (id: string, data: any) => fetchApi('/api/data', 'POST', { 
+    table: 'machines', 
+    action: 'update',
+    data,
+    filters: { id }
+  }),
+  delete: (id: string) => fetchApi('/api/data', 'POST', { 
+    table: 'machines', 
+    action: 'delete',
+    filters: { id }
+  }),
 };
 
 // Add more API endpoints as needed for other modules 
