@@ -136,8 +136,8 @@ const CustomersScreen = () => {
       setCustomers(data);
       applyFilters(data, searchText, statusFilter);
     } catch (error) {
-      console.error('Müşteriler yüklenirken hata:', error);
-      Alert.alert('Hata', 'Müşteriler yüklenirken bir hata oluştu.');
+      console.error('Error loading customers:', error);
+      Alert.alert('Error', 'An error occurred while loading customers.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -226,21 +226,21 @@ const CustomersScreen = () => {
   // Müşteriyi sil
   const handleDeleteCustomer = (id: string) => {
     Alert.alert(
-      'Onay',
-      'Bu müşteriyi silmek istediğinize emin misiniz?',
+      'Confirmation',
+      'Are you sure you want to delete this customer?',
       [
         {
-          text: 'İptal',
+          text: 'Cancel',
           style: 'cancel'
         },
         {
-          text: 'Sil',
+          text: 'Delete',
           style: 'destructive',
           onPress: () => {
             // Mock silme işlemi
             const updatedCustomers = customers.filter(customer => customer.id !== id);
             setCustomers(updatedCustomers);
-            Alert.alert('Başarılı', 'Müşteri silindi.');
+            Alert.alert('Success', 'Customer deleted successfully.');
           }
         }
       ]
@@ -325,9 +325,9 @@ const CustomersScreen = () => {
 
   // Statü listesi
   const statusOptions = [
-    { value: 'Aktif', label: 'Aktif' },
-    { value: 'Pasif', label: 'Pasif' },
-    { value: 'Beklemede', label: 'Beklemede' },
+    { value: 'Active', label: 'Active' },
+    { value: 'Inactive', label: 'Inactive' },
+    { value: 'Pending', label: 'Pending' },
   ];
 
   return (
@@ -363,7 +363,11 @@ const CustomersScreen = () => {
       <View style={styles.filterContainer}>
         <Text style={styles.filterLabel}>Durum:</Text>
         <ScrollablePills
-          options={statusOptions}
+          options={[
+            { value: 'Active', label: 'Active' },
+            { value: 'Inactive', label: 'Inactive' },
+            { value: 'Pending', label: 'Pending' },
+          ]}
           selectedValue={statusFilter}
           onSelect={changeStatusFilter}
         />

@@ -66,7 +66,7 @@ const EmployeesScreen = () => {
       id: '3',
       first_name: 'Mehmet',
       last_name: 'Kaya',
-      position: 'Makine Mühendisi',
+      position: 'Mechanical Engineer',
       department: 'Mühendislik',
       email: 'mehmet.kaya@example.com',
       phone: '555-345-6789',
@@ -124,8 +124,8 @@ const EmployeesScreen = () => {
       setEmployees(data);
       applyFilters(data, searchText, departmentFilter);
     } catch (error) {
-      console.error('Çalışanlar yüklenirken hata:', error);
-      Alert.alert('Hata', 'Çalışanlar yüklenirken bir hata oluştu.');
+      console.error('Error loading employees:', error);
+      Alert.alert('Error', 'An error occurred while loading employees.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -216,21 +216,26 @@ const EmployeesScreen = () => {
   // Çalışanı sil
   const handleDeleteEmployee = (id: string) => {
     Alert.alert(
-      'Onay',
-      'Bu çalışanı silmek istediğinize emin misiniz?',
+      'Confirmation',
+      'Are you sure you want to delete this employee?',
       [
         {
-          text: 'İptal',
+          text: 'Cancel',
           style: 'cancel'
         },
         {
-          text: 'Sil',
+          text: 'Delete',
           style: 'destructive',
-          onPress: () => {
-            // Mock silme işlemi
-            const updatedEmployees = employees.filter(employee => employee.id !== id);
-            setEmployees(updatedEmployees);
-            Alert.alert('Başarılı', 'Çalışan silindi.');
+          onPress: async () => {
+            try {
+              // Mock silme işlemi
+              const updatedEmployees = employees.filter(employee => employee.id !== id);
+              setEmployees(updatedEmployees);
+              Alert.alert('Success', 'Employee has been deleted.');
+            } catch (error) {
+              console.error('Error deleting employee:', error);
+              Alert.alert('Error', 'An error occurred while deleting the employee.');
+            }
           }
         }
       ]

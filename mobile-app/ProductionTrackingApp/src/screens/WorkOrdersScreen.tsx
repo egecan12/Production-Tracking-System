@@ -68,8 +68,8 @@ const WorkOrdersScreen = () => {
       setWorkOrders(data);
       applyFilters(data, searchText, statusFilter);
     } catch (error) {
-      console.error('İş emirleri yüklenirken hata:', error);
-      Alert.alert('Hata', 'İş emirleri yüklenirken bir hata oluştu.');
+      console.error('Error loading work orders:', error);
+      Alert.alert('Error', 'An error occurred while loading work orders.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -164,25 +164,25 @@ const WorkOrdersScreen = () => {
   // İş emrini sil
   const handleDeleteWorkOrder = (id: string) => {
     Alert.alert(
-      'Onay',
-      'Bu iş emrini silmek istediğinize emin misiniz?',
+      'Confirmation',
+      'Are you sure you want to delete this work order?',
       [
         {
-          text: 'İptal',
+          text: 'Cancel',
           style: 'cancel'
         },
         {
-          text: 'Sil',
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
               await workOrdersApi.delete(id);
               // Listeden kaldır
               setWorkOrders(workOrders.filter(order => order.id !== id));
-              Alert.alert('Başarılı', 'İş emri silindi.');
+              Alert.alert('Success', 'Work order deleted successfully.');
             } catch (error) {
-              console.error('İş emri silinirken hata:', error);
-              Alert.alert('Hata', 'İş emri silinirken bir hata oluştu.');
+              console.error('Error deleting work order:', error);
+              Alert.alert('Error', 'An error occurred while deleting the work order.');
             }
           }
         }
@@ -264,13 +264,13 @@ const WorkOrdersScreen = () => {
       </View>
       
       <View style={styles.filterContainer}>
-        <Text style={styles.filterLabel}>Filtrele:</Text>
+        <Text style={styles.filterLabel}>Filter:</Text>
         <ScrollablePills
           options={[
-            { value: 'pending', label: 'Bekleyen' },
-            { value: 'in progress', label: 'Devam Eden' },
-            { value: 'completed', label: 'Tamamlanan' },
-            { value: 'cancelled', label: 'İptal' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'in progress', label: 'In Progress' },
+            { value: 'completed', label: 'Completed' },
+            { value: 'cancelled', label: 'Cancelled' },
           ]}
           selectedValue={statusFilter}
           onSelect={changeStatusFilter}

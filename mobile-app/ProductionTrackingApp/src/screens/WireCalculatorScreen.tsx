@@ -15,7 +15,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Picker } from '@react-native-picker/picker';
 
-// Malzeme yoğunlukları (g/cm³)
+// Material densities (g/cm³)
 const MATERIAL_DENSITIES = {
   steel: 7.85,
   stainless_steel: 8.0,
@@ -28,20 +28,20 @@ const MATERIAL_DENSITIES = {
   tungsten: 19.25,
 };
 
-// Malzeme tiplerinin görünen isimleri
+// Display names for material types
 const MATERIAL_NAMES = {
-  steel: 'Çelik',
-  stainless_steel: 'Paslanmaz Çelik',
-  copper: 'Bakır',
-  aluminum: 'Alüminyum',
-  brass: 'Pirinç',
-  titanium: 'Titanyum',
-  gold: 'Altın',
-  silver: 'Gümüş',
+  steel: 'Steel',
+  stainless_steel: 'Stainless Steel',
+  copper: 'Copper',
+  aluminum: 'Aluminum',
+  brass: 'Brass',
+  titanium: 'Titanium',
+  gold: 'Gold',
+  silver: 'Silver',
   tungsten: 'Tungsten',
 };
 
-// Hesaplama geçmişi kaydı için tip
+// Type for calculation history
 interface CalculationHistory {
   id: string;
   date: string;
@@ -53,78 +53,78 @@ interface CalculationHistory {
 }
 
 const WireCalculatorScreen = () => {
-  // Temel hesaplama parametreleri
+  // Basic calculation parameters
   const [material, setMaterial] = useState<keyof typeof MATERIAL_DENSITIES>('steel');
-  const [diameter, setDiameter] = useState<string>(''); // mm cinsinden
-  const [length, setLength] = useState<string>(''); // m cinsinden
+  const [diameter, setDiameter] = useState<string>(''); // in mm
+  const [length, setLength] = useState<string>(''); // in m
   const [quantity, setQuantity] = useState<string>('1');
   
-  // Hesaplama sonuçları
+  // Calculation results
   const [weight, setWeight] = useState<number | null>(null);
   const [surfaceArea, setSurfaceArea] = useState<number | null>(null);
   const [volume, setVolume] = useState<number | null>(null);
   
-  // Geçmiş hesaplamalar
+  // Calculation history
   const [history, setHistory] = useState<CalculationHistory[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   
-  // UI durumları
+  // UI states
   const [loading, setLoading] = useState(false);
   const [resultsVisible, setResultsVisible] = useState(false);
 
-  // Hesaplama yap
+  // Calculate
   const calculateWire = () => {
-    // Boş veya geçersiz girdileri kontrol et
+    // Check for empty or invalid inputs
     if (!diameter || !length || !quantity) {
-      Alert.alert('Hata', 'Lütfen tüm değerleri girin.');
+      Alert.alert('Error', 'Please enter all values.');
       return;
     }
     
-    // Sayısal değerlere dönüştür
+    // Convert to numerical values
     const diameterVal = parseFloat(diameter);
     const lengthVal = parseFloat(length);
     const quantityVal = parseInt(quantity, 10);
     
     if (isNaN(diameterVal) || isNaN(lengthVal) || isNaN(quantityVal)) {
-      Alert.alert('Hata', 'Lütfen geçerli sayısal değerler girin.');
+      Alert.alert('Error', 'Please enter valid numeric values.');
       return;
     }
     
     if (diameterVal <= 0 || lengthVal <= 0 || quantityVal <= 0) {
-      Alert.alert('Hata', 'Lütfen pozitif değerler girin.');
+      Alert.alert('Error', 'Please enter positive values.');
       return;
     }
     
     setLoading(true);
     
     setTimeout(() => {
-      // Hesaplamalar
-      // - Çapı mm'den cm'ye çevir (yoğunluk g/cm³ cinsinden)
+      // Calculations
+      // - Convert diameter from mm to cm (density is in g/cm³)
       const diameterCm = diameterVal / 10;
-      // - Uzunluğu m'den cm'ye çevir
+      // - Convert length from m to cm
       const lengthCm = lengthVal * 100;
-      // - Yarıçap
+      // - Radius
       const radiusCm = diameterCm / 2;
       
-      // Hacim hesapla (cm³): π * r² * uzunluk
+      // Calculate volume (cm³): π * r² * length
       const volumeVal = Math.PI * radiusCm * radiusCm * lengthCm;
       
-      // Yüzey alanı hesapla (cm²): 2 * π * r * uzunluk
+      // Calculate surface area (cm²): 2 * π * r * length
       const surfaceAreaVal = 2 * Math.PI * radiusCm * lengthCm;
       
-      // Ağırlık hesapla (g): hacim * yoğunluk
+      // Calculate weight (g): volume * density
       const densityGCm3 = MATERIAL_DENSITIES[material];
       const weightVal = volumeVal * densityGCm3;
       
-      // Adet sayısı ile çarp
+      // Multiply by quantity
       const totalWeight = weightVal * quantityVal;
       
-      // Sonuçları ayarla
+      // Set results
       setVolume(volumeVal * quantityVal);
       setSurfaceArea(surfaceAreaVal * quantityVal);
       setWeight(totalWeight);
       
-      // Geçmişe ekle
+      // Add to history
       const newHistory: CalculationHistory = {
         id: Date.now().toString(),
         date: new Date().toLocaleString(),
@@ -135,14 +135,14 @@ const WireCalculatorScreen = () => {
         weight: totalWeight,
       };
       
-      setHistory(prev => [newHistory, ...prev].slice(0, 10)); // Son 10 kaydı tut
+      setHistory(prev => [newHistory, ...prev].slice(0, 10)); // Keep last 10 records
       
       setLoading(false);
       setResultsVisible(true);
-    }, 500); // Hesaplama efekti için kısa gecikme
+    }, 500); // Short delay for calculation effect
   };
   
-  // Temizle
+  // Reset
   const resetCalculator = () => {
     setDiameter('');
     setLength('');
@@ -153,7 +153,7 @@ const WireCalculatorScreen = () => {
     setResultsVisible(false);
   };
   
-  // Geçmiş hesaplamayı yükle
+  // Load history item
   const loadHistoryItem = (item: CalculationHistory) => {
     setMaterial(item.material as keyof typeof MATERIAL_DENSITIES);
     setDiameter(item.diameter.toString());
@@ -161,7 +161,7 @@ const WireCalculatorScreen = () => {
     setQuantity(item.quantity.toString());
     setWeight(item.weight);
     
-    // Diğer değerleri yeniden hesapla
+    // Recalculate other values
     const diameterCm = item.diameter / 10;
     const lengthCm = item.length * 100;
     const radiusCm = diameterCm / 2;
@@ -176,86 +176,86 @@ const WireCalculatorScreen = () => {
     setShowHistory(false);
   };
   
-  // Geçmiş hesaplamayı sil
+  // Delete history item
   const deleteHistoryItem = (id: string) => {
     setHistory(prev => prev.filter(item => item.id !== id));
   };
   
-  // Sonuç görünümü
+  // Results view
   const renderResults = () => {
     if (!resultsVisible) return null;
     
     return (
       <View style={styles.resultsContainer}>
         <View style={styles.resultHeader}>
-          <Text style={styles.resultTitle}>Hesaplama Sonuçları</Text>
+          <Text style={styles.resultTitle}>Calculation Results</Text>
           <TouchableOpacity onPress={resetCalculator}>
             <Icon name="refresh" size={20} color="#3B82F6" />
           </TouchableOpacity>
         </View>
         
         <View style={styles.resultRow}>
-          <Text style={styles.resultLabel}>Toplam Ağırlık:</Text>
+          <Text style={styles.resultLabel}>Total Weight:</Text>
           <Text style={styles.resultValue}>
             {weight !== null ? `${(weight / 1000).toFixed(3)} kg` : '-'}
           </Text>
         </View>
         
         <View style={styles.resultRow}>
-          <Text style={styles.resultLabel}>Birim Ağırlık:</Text>
+          <Text style={styles.resultLabel}>Unit Weight:</Text>
           <Text style={styles.resultValue}>
             {weight !== null && parseInt(quantity) > 0 
-              ? `${((weight / parseInt(quantity)) / 1000).toFixed(3)} kg/adet` 
+              ? `${((weight / parseInt(quantity)) / 1000).toFixed(3)} kg/pc` 
               : '-'}
           </Text>
         </View>
         
         <View style={styles.resultRow}>
-          <Text style={styles.resultLabel}>Toplam Hacim:</Text>
+          <Text style={styles.resultLabel}>Total Volume:</Text>
           <Text style={styles.resultValue}>
             {volume !== null ? `${volume.toFixed(2)} cm³` : '-'}
           </Text>
         </View>
         
         <View style={styles.resultRow}>
-          <Text style={styles.resultLabel}>Yüzey Alanı:</Text>
+          <Text style={styles.resultLabel}>Surface Area:</Text>
           <Text style={styles.resultValue}>
             {surfaceArea !== null ? `${surfaceArea.toFixed(2)} cm²` : '-'}
           </Text>
         </View>
         
         <View style={styles.resultRow}>
-          <Text style={styles.resultLabel}>Malzeme:</Text>
+          <Text style={styles.resultLabel}>Material:</Text>
           <Text style={styles.resultValue}>{MATERIAL_NAMES[material]}</Text>
         </View>
         
         <TouchableOpacity 
           style={styles.saveButton}
           onPress={() => {
-            Alert.alert('Bilgi', 'Bu özellik henüz tamamlanmadı. Hesaplama otomatik olarak geçmişe kaydedildi.');
+            Alert.alert('Information', 'This feature is not yet completed. Calculation has been automatically saved to history.');
           }}
         >
-          <Text style={styles.saveButtonText}>Kaydet</Text>
+          <Text style={styles.saveButtonText}>Save</Text>
         </TouchableOpacity>
       </View>
     );
   };
   
-  // Geçmiş görünümü
+  // History view
   const renderHistory = () => {
     if (!showHistory) return null;
     
     return (
       <View style={styles.historyContainer}>
         <View style={styles.historyHeader}>
-          <Text style={styles.historyTitle}>Geçmiş Hesaplamalar</Text>
+          <Text style={styles.historyTitle}>Calculation History</Text>
           <TouchableOpacity onPress={() => setShowHistory(false)}>
             <Icon name="close" size={20} color="#9CA3AF" />
           </TouchableOpacity>
         </View>
         
         {history.length === 0 ? (
-          <Text style={styles.emptyText}>Henüz kaydedilmiş hesaplama yok.</Text>
+          <Text style={styles.emptyText}>No calculation history yet.</Text>
         ) : (
           <ScrollView style={styles.historyList}>
             {history.map((item) => (
@@ -267,7 +267,7 @@ const WireCalculatorScreen = () => {
                   <Text style={styles.historyDate}>{item.date}</Text>
                   <Text style={styles.historyMaterial}>{MATERIAL_NAMES[item.material as keyof typeof MATERIAL_NAMES]}</Text>
                   <Text style={styles.historyDetails}>
-                    {`Ø ${item.diameter}mm × ${item.length}m × ${item.quantity} adet`}
+                    {`Ø ${item.diameter}mm × ${item.length}m × ${item.quantity} pc`}
                   </Text>
                   <Text style={styles.historyWeight}>
                     {`${(item.weight / 1000).toFixed(3)} kg`}
@@ -300,7 +300,7 @@ const WireCalculatorScreen = () => {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
-            <Text style={styles.title}>Tel Hesaplama Aracı</Text>
+            <Text style={styles.title}>Wire Calculator</Text>
             <TouchableOpacity 
               style={styles.historyButton}
               onPress={() => setShowHistory(!showHistory)}
@@ -314,10 +314,10 @@ const WireCalculatorScreen = () => {
           {!showHistory && (
             <>
               <View style={styles.formContainer}>
-                <Text style={styles.sectionTitle}>Temel Parametreler</Text>
+                <Text style={styles.sectionTitle}>Basic Parameters</Text>
                 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Malzeme</Text>
+                  <Text style={styles.inputLabel}>Material</Text>
                   <View style={styles.pickerContainer}>
                     <Picker
                       selectedValue={material}
@@ -333,36 +333,36 @@ const WireCalculatorScreen = () => {
                 </View>
                 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Çap (mm)</Text>
+                  <Text style={styles.inputLabel}>Diameter (mm)</Text>
                   <TextInput
                     style={styles.input}
                     value={diameter}
                     onChangeText={setDiameter}
-                    placeholder="Örn: 2.5"
+                    placeholder="Ex: 2.5"
                     placeholderTextColor="#6B7280"
                     keyboardType="decimal-pad"
                   />
                 </View>
                 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Uzunluk (m)</Text>
+                  <Text style={styles.inputLabel}>Length (m)</Text>
                   <TextInput
                     style={styles.input}
                     value={length}
                     onChangeText={setLength}
-                    placeholder="Örn: 100"
+                    placeholder="Ex: 100"
                     placeholderTextColor="#6B7280"
                     keyboardType="decimal-pad"
                   />
                 </View>
                 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Adet</Text>
+                  <Text style={styles.inputLabel}>Quantity</Text>
                   <TextInput
                     style={styles.input}
                     value={quantity}
                     onChangeText={setQuantity}
-                    placeholder="Örn: 1"
+                    placeholder="Ex: 1"
                     placeholderTextColor="#6B7280"
                     keyboardType="number-pad"
                   />
@@ -376,7 +376,7 @@ const WireCalculatorScreen = () => {
                   {loading ? (
                     <ActivityIndicator color="#FFFFFF" size="small" />
                   ) : (
-                    <Text style={styles.calculateButtonText}>Hesapla</Text>
+                    <Text style={styles.calculateButtonText}>Calculate</Text>
                   )}
                 </TouchableOpacity>
               </View>

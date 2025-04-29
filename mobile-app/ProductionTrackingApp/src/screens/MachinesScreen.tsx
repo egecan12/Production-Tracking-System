@@ -19,7 +19,7 @@ import { machinesApi } from '../api/apiService';
 import { hasMachinePermission } from '../lib/authUtils';
 import { MachinesStackParamList } from '../navigation/AppNavigator';
 
-// Makine tipi tanımı
+// Machine type definition
 interface Machine {
   id: string;
   name: string;
@@ -46,7 +46,7 @@ const MachinesScreen = () => {
   const [canDelete, setCanDelete] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
-  // Kullanıcı yetkilerini kontrol et
+  // Check user permissions
   useEffect(() => {
     const checkPermissions = async () => {
       const editPermission = await hasMachinePermission('edit');
@@ -59,17 +59,17 @@ const MachinesScreen = () => {
     checkPermissions();
   }, []);
 
-  // Makineleri yükle
+  // Load machines
   const loadMachines = async () => {
     try {
       setLoading(true);
       const response = await machinesApi.getAll();
       
-      // Yanıt formatını kontrol et ve düzenle
+      // Check and format response data
       let data = response.data || [];
       console.log("Machines data received:", data);
       
-      // Tarihleri formatlayalım
+      // Format dates
       data = data.map((machine: Machine) => ({
         ...machine,
         maintenance_date: formatDate(machine.maintenance_date),
@@ -79,24 +79,24 @@ const MachinesScreen = () => {
       setMachines(data);
       applyFilters(data, searchText, statusFilter);
     } catch (error) {
-      console.error('Makineler yüklenirken hata:', error);
-      Alert.alert('Hata', 'Makineler yüklenirken bir hata oluştu.');
+      console.error('Error loading machines:', error);
+      Alert.alert('Error', 'An error occurred while loading machines.');
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  // İlk yükleme
+  // Initial loading
   useEffect(() => {
     loadMachines();
   }, []);
 
-  // Filtre fonksiyonu
+  // Filter function
   const applyFilters = (data: Machine[], search: string, status: string | null) => {
     let result = [...data];
     
-    // Metin araması
+    // Text search
     if (search) {
       const searchLower = search.toLowerCase();
       result = result.filter(machine => 
@@ -107,7 +107,7 @@ const MachinesScreen = () => {
       );
     }
     
-    // Durum filtresi
+    // Status filter
     if (status) {
       result = result.filter(machine => machine.status === status);
     }
@@ -115,40 +115,38 @@ const MachinesScreen = () => {
     setFilteredMachines(result);
   };
 
-  // Arama değiştiğinde
+  // When search changes
   useEffect(() => {
     applyFilters(machines, searchText, statusFilter);
   }, [searchText, statusFilter, machines]);
 
-  // Tarih formatı
+  // Date format
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
     return date.toLocaleDateString();
   };
 
-  // Durum gösterimi
+  // Status display
   const StatusBadge = ({ status }: { status: string }) => {
     let color;
     switch (status.toLowerCase()) {
       case 'operational':
-      case 'çalışır':
-        color = '#34D399'; // Yeşil
+      case 'active':
+        color = '#34D399'; // Green
         break;
       case 'maintenance':
-      case 'bakımda':
-        color = '#FCD34D'; // Sarı
+        color = '#FCD34D'; // Yellow
         break;
       case 'repair':
-      case 'tamirde':
-        color = '#F87171'; // Kırmızı
+      case 'inactive':
+        color = '#F87171'; // Red
         break;
       case 'idle':
-      case 'beklemede':
-        color = '#60A5FA'; // Mavi
+        color = '#60A5FA'; // Blue
         break;
       default:
-        color = '#9CA3AF'; // Gri
+        color = '#9CA3AF'; // Gray
     }
     
     return (
@@ -158,44 +156,44 @@ const MachinesScreen = () => {
     );
   };
 
-  // Yeni makine ekleme
+  // Add new machine
   const handleAddMachine = () => {
-    // Yeni makine ekleme sayfasına yönlendir
-    Alert.alert('Bilgi', 'Yeni makine ekleme sayfası henüz uygulanmadı.');
+    // Navigate to add machine page
+    Alert.alert('Information', 'Add machine page not yet implemented.');
   };
 
-  // Makine detayını göster
+  // Show machine details
   const handleViewMachine = (machine: Machine) => {
     // Navigate to machine detail screen
     navigation.navigate('MachineDetail', { machineId: machine.id });
   };
 
-  // Makineyi sil
+  // Delete machine
   const handleDeleteMachine = (id: string) => {
     Alert.alert(
-      'Onay',
-      'Bu makineyi silmek istediğinize emin misiniz?',
+      'Confirmation',
+      'Are you sure you want to delete this machine?',
       [
         {
-          text: 'İptal',
+          text: 'Cancel',
           style: 'cancel'
         },
         {
-          text: 'Sil',
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
               const response = await machinesApi.delete(id);
               if (response.success) {
-                // Listeden kaldır
+                // Remove from list
                 setMachines(machines.filter(machine => machine.id !== id));
-                Alert.alert('Başarılı', 'Makine silindi.');
+                Alert.alert('Success', 'Machine deleted successfully.');
               } else {
-                throw new Error(response.error || 'Silme işlemi başarısız');
+                throw new Error(response.error || 'Delete operation failed');
               }
             } catch (error) {
-              console.error('Makine silinirken hata:', error);
-              Alert.alert('Hata', 'Makine silinirken bir hata oluştu.');
+              console.error('Error deleting machine:', error);
+              Alert.alert('Error', 'An error occurred while deleting the machine.');
             }
           }
         }
@@ -203,12 +201,12 @@ const MachinesScreen = () => {
     );
   };
 
-  // Durum filtresini değiştir
+  // Change status filter
   const changeStatusFilter = (status: string | null) => {
     setStatusFilter(current => current === status ? null : status);
   };
 
-  // Makine öğesi render fonksiyonu
+  // Machine item render function
   const renderMachine = ({ item }: { item: Machine }) => (
     <TouchableOpacity 
       style={styles.machineItem}
@@ -262,7 +260,7 @@ const MachinesScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Makineler</Text>
+        <Text style={styles.title}>Machines</Text>
         {canAddEdit && (
           <TouchableOpacity 
             style={styles.addButton}
@@ -277,7 +275,7 @@ const MachinesScreen = () => {
         <Icon name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Makine ara..."
+          placeholder="Search machines..."
           placeholderTextColor="#9CA3AF"
           value={searchText}
           onChangeText={setSearchText}
@@ -290,13 +288,13 @@ const MachinesScreen = () => {
       </View>
       
       <View style={styles.filterContainer}>
-        <Text style={styles.filterLabel}>Filtrele:</Text>
+        <Text style={styles.filterLabel}>Filter:</Text>
         <ScrollablePills
           options={[
-            { value: 'operational', label: 'Çalışır' },
-            { value: 'maintenance', label: 'Bakımda' },
-            { value: 'repair', label: 'Tamirde' },
-            { value: 'idle', label: 'Beklemede' },
+            { value: 'operational', label: 'Operational' },
+            { value: 'maintenance', label: 'Maintenance' },
+            { value: 'repair', label: 'Repair' },
+            { value: 'idle', label: 'Idle' },
           ]}
           selectedValue={statusFilter}
           onSelect={changeStatusFilter}
@@ -314,8 +312,8 @@ const MachinesScreen = () => {
               <Icon name="build" size={48} color="#6B7280" />
               <Text style={styles.emptyText}>
                 {searchText 
-                  ? 'Arama kriterlerine uygun makine bulunamadı.' 
-                  : 'Henüz makine bulunmuyor.'}
+                  ? 'No machines matching your search criteria.' 
+                  : 'No machines available yet.'}
               </Text>
             </View>
           ) : (
@@ -343,7 +341,7 @@ const MachinesScreen = () => {
   );
 };
 
-// Kaydırılabilir filtreleme pilleri
+// Scrollable filter pills
 const ScrollablePills = ({ 
   options, 
   selectedValue, 

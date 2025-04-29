@@ -73,8 +73,8 @@ const OrdersScreen = () => {
       setOrders(data);
       applyFilters(data, searchText, statusFilter);
     } catch (error) {
-      console.error('Siparişler yüklenirken hata:', error);
-      Alert.alert('Hata', 'Siparişler yüklenirken bir hata oluştu.');
+      console.error('Error loading orders:', error);
+      Alert.alert('Error', 'An error occurred while loading orders.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -215,25 +215,25 @@ const OrdersScreen = () => {
   // Siparişi sil
   const handleDeleteOrder = (id: string) => {
     Alert.alert(
-      'Onay',
-      'Bu siparişi silmek istediğinize emin misiniz?',
+      'Confirmation',
+      'Are you sure you want to delete this order?',
       [
         {
-          text: 'İptal',
+          text: 'Cancel',
           style: 'cancel'
         },
         {
-          text: 'Sil',
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
               await ordersApi.delete(id);
               // Listeden kaldır
               setOrders(orders.filter(order => order.id !== id));
-              Alert.alert('Başarılı', 'Sipariş silindi.');
+              Alert.alert('Success', 'Order deleted successfully.');
             } catch (error) {
-              console.error('Sipariş silinirken hata:', error);
-              Alert.alert('Hata', 'Sipariş silinirken bir hata oluştu.');
+              console.error('Error deleting order:', error);
+              Alert.alert('Error', 'An error occurred while deleting the order.');
             }
           }
         }
@@ -315,13 +315,13 @@ const OrdersScreen = () => {
       </View>
       
       <View style={styles.filterContainer}>
-        <Text style={styles.filterLabel}>Filtrele:</Text>
+        <Text style={styles.filterLabel}>Filter:</Text>
         <ScrollablePills
           options={[
-            { value: 'pending', label: 'Bekleyen' },
-            { value: 'processing', label: 'İşleniyor' },
-            { value: 'completed', label: 'Tamamlanan' },
-            { value: 'cancelled', label: 'İptal' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'processing', label: 'Processing' },
+            { value: 'completed', label: 'Completed' },
+            { value: 'cancelled', label: 'Cancelled' },
           ]}
           selectedValue={statusFilter}
           onSelect={changeStatusFilter}
