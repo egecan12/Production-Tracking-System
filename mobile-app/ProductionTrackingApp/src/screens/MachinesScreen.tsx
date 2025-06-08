@@ -209,7 +209,7 @@ const MachinesScreen = () => {
 
   // Change status filter
   const changeStatusFilter = (status: string | null) => {
-    setStatusFilter(current => current === status ? null : status);
+    setStatusFilter(status === 'all' ? null : status);
   };
 
   // Machine item render function
@@ -217,38 +217,33 @@ const MachinesScreen = () => {
     <TouchableOpacity 
       style={styles.machineItem}
       onPress={() => handleViewMachine(item)}
+      activeOpacity={0.7}
     >
       <View style={styles.machineHeader}>
-        <Text style={styles.machineName}>{item.name}</Text>
+        <View style={styles.machineIconContainer}>
+          <Icon name="precision-manufacturing" size={24} color="#60A5FA" />
+        </View>
+        <View style={styles.machineHeaderText}>
+          <Text style={styles.machineName}>{item.name}</Text>
+          <Text style={styles.serialNumber}>No: {item.serial_number}</Text>
+        </View>
         <StatusBadge status={item.status} />
       </View>
       
-      <View style={styles.machineBody}>
-        {item.image_url ? (
-          <Image 
-            source={{ uri: item.image_url }} 
-            style={styles.machineImage}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={styles.placeholderImage}>
-            <Icon name="build" size={24} color="#6B7280" />
+      <View style={styles.machineDetailsSection}>
+        <View style={styles.detailRow}>
+          <Icon name="location-on" size={16} color="#9CA3AF" />
+          <Text style={styles.detailText}>{item.location || "Not specified"}</Text>
+        </View>
+        {item.operator_name && (
+          <View style={styles.detailRow}>
+            <Icon name="person" size={16} color="#9CA3AF" />
+            <Text style={styles.detailText}>{item.operator_name}</Text>
           </View>
         )}
-        
-        <View style={styles.machineDetails}>
-          <Text style={styles.model}>{item.model}</Text>
-          <Text style={styles.serialNumber}>SN: {item.serial_number}</Text>
-          {item.location && (
-            <Text style={styles.location}>
-              <Icon name="location-on" size={12} color="#9CA3AF" /> {item.location}
-            </Text>
-          )}
-          {item.operator_name && (
-            <Text style={styles.operator}>
-              <Icon name="person" size={12} color="#9CA3AF" /> {item.operator_name}
-            </Text>
-          )}
+        <View style={styles.detailRow}>
+          <Icon name="settings" size={16} color="#9CA3AF" />
+          <Text style={styles.detailText}>{item.model}</Text>
         </View>
       </View>
       
@@ -257,16 +252,19 @@ const MachinesScreen = () => {
           <TouchableOpacity 
             style={styles.editButton}
             onPress={() => handleEditMachine(item)}
+            activeOpacity={0.7}
           >
-            <Icon name="edit" size={18} color="#3B82F6" />
+            <Icon name="edit" size={16} color="#FFFFFF" />
+            <Text style={styles.actionButtonText}>Edit</Text>
           </TouchableOpacity>
         )}
         {canDelete && (
           <TouchableOpacity 
             style={styles.deleteButton}
             onPress={() => handleDeleteMachine(item.id)}
+            activeOpacity={0.7}
           >
-            <Icon name="delete" size={18} color="#F87171" />
+            <Icon name="delete" size={16} color="#FFFFFF" />
           </TouchableOpacity>
         )}
       </View>
@@ -281,8 +279,10 @@ const MachinesScreen = () => {
           <TouchableOpacity 
             style={styles.addButton}
             onPress={handleAddMachine}
+            activeOpacity={0.8}
           >
-            <Icon name="add" size={24} color="#FFFFFF" />
+            <Icon name="add" size={20} color="#FFFFFF" />
+            <Text style={styles.addButtonText}>Add</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -304,33 +304,50 @@ const MachinesScreen = () => {
       </View>
       
       <View style={styles.filterContainer}>
-        <Text style={styles.filterLabel}>Filter:</Text>
+        <Text style={styles.filterLabel}>Status:</Text>
         <ScrollablePills
           options={[
-            { value: 'operational', label: 'Operational' },
+            { value: 'all', label: 'All' },
+            { value: 'operational', label: 'Active' },
             { value: 'maintenance', label: 'Maintenance' },
             { value: 'repair', label: 'Repair' },
             { value: 'idle', label: 'Idle' },
           ]}
-          selectedValue={statusFilter}
+          selectedValue={statusFilter || 'all'}
           onSelect={changeStatusFilter}
         />
       </View>
       
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#3B82F6" />
+          <ActivityIndicator size="large" color="#60A5FA" />
+          <Text style={styles.loadingText}>Loading machines...</Text>
         </View>
       ) : (
         <>
           {filteredMachines.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Icon name="build" size={48} color="#6B7280" />
-              <Text style={styles.emptyText}>
-                {searchText 
-                  ? 'No machines matching your search criteria.' 
-                  : 'No machines available yet.'}
+              <Icon name="precision-manufacturing" size={64} color="#6B7280" />
+              <Text style={styles.emptyTitle}>
+                {searchText || statusFilter 
+                  ? 'No machines found' 
+                  : 'No machines available yet'}
               </Text>
+              <Text style={styles.emptySubtitle}>
+                {searchText || statusFilter
+                  ? 'Try adjusting your search or filter criteria'
+                  : 'Add your first machine to get started'}
+              </Text>
+              {!searchText && !statusFilter && canAddEdit && (
+                <TouchableOpacity 
+                  style={styles.emptyActionButton}
+                  onPress={handleAddMachine}
+                  activeOpacity={0.8}
+                >
+                  <Icon name="add" size={20} color="#FFFFFF" />
+                  <Text style={styles.emptyActionText}>Add First Machine</Text>
+                </TouchableOpacity>
+              )}
             </View>
           ) : (
             <FlatList
@@ -338,6 +355,7 @@ const MachinesScreen = () => {
               keyExtractor={(item) => item.id.toString()}
               renderItem={renderMachine}
               contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}
@@ -345,8 +363,8 @@ const MachinesScreen = () => {
                     setRefreshing(true);
                     loadMachines();
                   }}
-                  colors={['#3B82F6']}
-                  tintColor="#3B82F6"
+                  colors={['#60A5FA']}
+                  tintColor="#60A5FA"
                 />
               }
             />
@@ -410,11 +428,12 @@ const styles = StyleSheet.create({
   },
   addButton: {
     backgroundColor: '#3B82F6',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -495,74 +514,79 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  machineIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: '#1F2937',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  machineHeaderText: {
+    flex: 1,
+    justifyContent: 'center',
+    marginLeft: 12,
+  },
   machineName: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  statusText: {
-    color: '#121212',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  machineBody: {
-    flexDirection: 'row',
-  },
-  machineImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    marginRight: 12,
-  },
-  placeholderImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    backgroundColor: '#1F2937',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  machineDetails: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  model: {
-    color: '#D1D5DB',
-    fontSize: 14,
-    marginBottom: 4,
-  },
   serialNumber: {
     color: '#9CA3AF',
     fontSize: 12,
-    marginBottom: 4,
+    marginTop: 2,
   },
-  location: {
-    color: '#9CA3AF',
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusText: {
+    color: '#111827',
     fontSize: 12,
-    marginBottom: 4,
+    fontWeight: '600',
   },
-  operator: {
+  machineDetailsSection: {
+    marginTop: 12,
+    gap: 6,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  detailText: {
     color: '#9CA3AF',
     fontSize: 12,
   },
   actionButtons: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
     flexDirection: 'row',
+    marginTop: 12,
     gap: 8,
   },
   editButton: {
-    padding: 4,
+    backgroundColor: '#3B82F6',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    gap: 4,
+    flex: 1,
+    justifyContent: 'center',
   },
   deleteButton: {
-    padding: 4,
+    backgroundColor: '#EF4444',
+    padding: 8,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
   emptyContainer: {
     flex: 1,
@@ -570,11 +594,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 32,
   },
-  emptyText: {
+  emptyTitle: {
     color: '#6B7280',
     marginTop: 12,
     textAlign: 'center',
     fontSize: 14,
+  },
+  emptySubtitle: {
+    color: '#9CA3AF',
+    marginTop: 12,
+    textAlign: 'center',
+    fontSize: 12,
+  },
+  emptyActionButton: {
+    backgroundColor: '#3B82F6',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 24,
+  },
+  emptyActionText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  addButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  loadingText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginTop: 12,
   },
 });
 

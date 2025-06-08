@@ -99,8 +99,9 @@ const EmployeesScreen = () => {
       const searchLower = search.toLowerCase();
       result = result.filter(employee => 
         employee.name.toLowerCase().includes(searchLower) ||
-        employee.position.toLowerCase().includes(searchLower) ||
-        (employee.email && employee.email.toLowerCase().includes(searchLower))
+        (employee.position && employee.position.toLowerCase().includes(searchLower)) ||
+        (employee.email && employee.email.toLowerCase().includes(searchLower)) ||
+        (employee.department && employee.department.toLowerCase().includes(searchLower))
       );
     }
     
@@ -124,32 +125,12 @@ const EmployeesScreen = () => {
     return date.toLocaleDateString();
   };
 
-  // Status display
-  const StatusBadge = ({ status }: { status: string }) => {
-    let color;
-    const statusLower = (status || '').toLowerCase();
-    switch (statusLower) {
-      case 'active':
-      case 'aktif':
-        color = '#34D399'; // Green
-        break;
-      case 'on leave':
-      case 'izinde':
-        color = '#FCD34D'; // Yellow
-        break;
-      case 'suspended':
-      case 'askıda':
-        color = '#F87171'; // Red
-        break;
-      default:
-        color = '#9CA3AF'; // Gray
-    }
-    
-    return (
-      <View style={[styles.statusBadge, { backgroundColor: color }]}>
-        <Text style={styles.statusText}>{status || 'Unknown'}</Text>
-      </View>
-    );
+  // Get unique departments for filter
+  const departments = Array.from(new Set(employees.map(emp => emp.department).filter(Boolean)));
+
+  // Change department filter
+  const changeDepartmentFilter = (department: string | null) => {
+    setDepartmentFilter(department === 'all' ? null : department);
   };
 
   // Add new employee
@@ -159,11 +140,8 @@ const EmployeesScreen = () => {
 
   // View employee details
   const handleViewEmployee = (employee: Employee) => {
-    navigation.navigate('EmployeeDetails', {
-      employeeId: employee.id,
-      onEmployeeUpdated: () => {
-        loadEmployees();
-      }
+    navigation.navigate('EmployeeDetail', {
+      employeeId: employee.id
     });
   };
 
@@ -199,96 +177,92 @@ const EmployeesScreen = () => {
     );
   };
 
-  // Change department filter
-  const changeDepartmentFilter = (department: string | null) => {
-    setDepartmentFilter(current => current === department ? null : department);
+  // Get initials for avatar
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  // Get unique departments
-  const uniqueDepartments = Array.from(new Set(employees.map(emp => emp.department)));
-
   // Employee item render function
-  const renderEmployee = ({ item }: { item: Employee }) => {
-    console.log('Rendering employee:', item); // Debug log for rendering
-    return (
-      <TouchableOpacity 
-        style={styles.employeeItem}
-        onPress={() => handleViewEmployee(item)}
-      >
-        <View style={styles.employeeHeader}>
-          <View style={styles.employeeNameContainer}>
-            {item.profile_image ? (
-              <Image 
-                source={{ uri: item.profile_image }} 
-                style={styles.profileImage}
-              />
-            ) : (
-              <View style={styles.profileInitials}>
-                <Text style={styles.initialsText}>
-                  {(item.name || '').charAt(0)}
-                </Text>
-              </View>
-            )}
-            <View>
-              <Text style={styles.employeeName}>
-                {item.name || 'No Name'}
-              </Text>
-              <Text style={styles.position}>{item.position || 'No Position'}</Text>
-            </View>
-          </View>
-          <StatusBadge status={item.status} />
+  const renderEmployee = ({ item }: { item: Employee }) => (
+    <TouchableOpacity 
+      style={styles.employeeItem}
+      onPress={() => handleViewEmployee(item)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.employeeHeader}>
+        <View style={styles.avatarContainer}>
+          <Text style={styles.avatarText}>{getInitials(item.name)}</Text>
         </View>
-        
-        <View style={styles.employeeDetails}>
-          <View style={styles.detailItem}>
-            <Icon name="business" size={14} color="#9CA3AF" />
+        <View style={styles.employeeHeaderText}>
+          <Text style={styles.employeeName}>{item.name}</Text>
+          {item.position && (
+            <Text style={styles.positionText}>{item.position}</Text>
+          )}
+        </View>
+        <View style={[styles.statusBadge, { backgroundColor: item.is_active ? '#10B981' : '#EF4444' }]}>
+          <Text style={styles.statusText}>{item.is_active ? 'Active' : 'Inactive'}</Text>
+        </View>
+      </View>
+      
+      <View style={styles.employeeDetailsSection}>
+        {item.email && (
+          <View style={styles.detailRow}>
+            <Icon name="email" size={16} color="#9CA3AF" />
+            <Text style={styles.detailText}>{item.email}</Text>
+          </View>
+        )}
+        {item.phone && (
+          <View style={styles.detailRow}>
+            <Icon name="phone" size={16} color="#9CA3AF" />
+            <Text style={styles.detailText}>{item.phone}</Text>
+          </View>
+        )}
+        {item.department && (
+          <View style={styles.detailRow}>
+            <Icon name="business" size={16} color="#9CA3AF" />
             <Text style={styles.detailText}>{item.department}</Text>
           </View>
-          
-          {item.email && (
-            <View style={styles.detailItem}>
-              <Icon name="email" size={14} color="#9CA3AF" />
-              <Text style={styles.detailText}>{item.email}</Text>
-            </View>
-          )}
-          
-          {item.phone && (
-            <View style={styles.detailItem}>
-              <Icon name="phone" size={14} color="#9CA3AF" />
-              <Text style={styles.detailText}>{item.phone}</Text>
-            </View>
-          )}
-          
-          {item.hire_date && (
-            <View style={styles.detailItem}>
-              <Icon name="event" size={14} color="#9CA3AF" />
-              <Text style={styles.detailText}>Hire Date: {item.hire_date}</Text>
-            </View>
-          )}
-        </View>
-        
+        )}
+      </View>
+      
+      <View style={styles.actionButtons}>
+        {canAddEdit && (
+          <TouchableOpacity 
+            style={styles.editButton}
+            onPress={() => navigation.navigate('AddEditEmployee', { employeeId: item.id })}
+            activeOpacity={0.7}
+          >
+            <Icon name="edit" size={16} color="#FFFFFF" />
+            <Text style={styles.actionButtonText}>Edit</Text>
+          </TouchableOpacity>
+        )}
         {canAddEdit && (
           <TouchableOpacity 
             style={styles.deleteButton}
             onPress={() => handleDeleteEmployee(item.id)}
+            activeOpacity={0.7}
           >
-            <Icon name="delete" size={18} color="#F87171" />
+            <Icon name="delete" size={16} color="#FFFFFF" />
           </TouchableOpacity>
         )}
-      </TouchableOpacity>
-    );
-  };
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Employee Management</Text>
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={handleAddEmployee}
-        >
-          <Icon name="add" size={24} color="white" />
-        </TouchableOpacity>
+        <Text style={styles.title}>Employees</Text>
+        {canAddEdit && (
+          <TouchableOpacity 
+            style={styles.addButton}
+            onPress={handleAddEmployee}
+            activeOpacity={0.8}
+          >
+            <Icon name="add" size={20} color="#FFFFFF" />
+            <Text style={styles.addButtonText}>Add</Text>
+          </TouchableOpacity>
+        )}
       </View>
       
       <View style={styles.searchContainer}>
@@ -307,29 +281,50 @@ const EmployeesScreen = () => {
         )}
       </View>
       
-      <View style={styles.filterContainer}>
-        <Text style={styles.filterLabel}>Department:</Text>
-        <ScrollablePills
-          options={uniqueDepartments.map(dept => ({ value: dept, label: dept }))}
-          selectedValue={departmentFilter}
-          onSelect={changeDepartmentFilter}
-        />
-      </View>
+      {departments.length > 0 && (
+        <View style={styles.filterContainer}>
+          <Text style={styles.filterLabel}>Department:</Text>
+          <ScrollablePills
+            options={[
+              { value: 'all', label: 'All Departments' },
+              ...departments.map(dept => ({ value: dept!, label: dept! }))
+            ]}
+            selectedValue={departmentFilter || 'all'}
+            onSelect={changeDepartmentFilter}
+          />
+        </View>
+      )}
       
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#3B82F6" />
+          <ActivityIndicator size="large" color="#60A5FA" />
+          <Text style={styles.loadingText}>Loading employees...</Text>
         </View>
       ) : (
         <>
           {filteredEmployees.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Icon name="people" size={48} color="#6B7280" />
-              <Text style={styles.emptyText}>
-                {searchText || departmentFilter
-                  ? 'No employees found matching your search criteria.' 
-                  : 'No employees found.'}
+              <Icon name="person" size={64} color="#6B7280" />
+              <Text style={styles.emptyTitle}>
+                {searchText || departmentFilter 
+                  ? 'No employees found' 
+                  : 'No employees registered yet'}
               </Text>
+              <Text style={styles.emptySubtitle}>
+                {searchText || departmentFilter
+                  ? 'Try adjusting your search or filter criteria'
+                  : 'Add your first employee to get started'}
+              </Text>
+              {!searchText && !departmentFilter && canAddEdit && (
+                <TouchableOpacity 
+                  style={styles.emptyActionButton}
+                  onPress={handleAddEmployee}
+                  activeOpacity={0.8}
+                >
+                  <Icon name="add" size={20} color="#FFFFFF" />
+                  <Text style={styles.emptyActionText}>Add First Employee</Text>
+                </TouchableOpacity>
+              )}
             </View>
           ) : (
             <FlatList
@@ -337,6 +332,7 @@ const EmployeesScreen = () => {
               keyExtractor={(item) => item.id.toString()}
               renderItem={renderEmployee}
               contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}
@@ -344,8 +340,8 @@ const EmployeesScreen = () => {
                     setRefreshing(true);
                     loadEmployees();
                   }}
-                  colors={['#3B82F6']}
-                  tintColor="#3B82F6"
+                  colors={['#60A5FA']}
+                  tintColor="#60A5FA"
                 />
               }
             />
@@ -413,11 +409,23 @@ const styles = StyleSheet.create({
   },
   addButton: {
     backgroundColor: '#3B82F6',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
+  },
+  addButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  loadingText: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: 'center',
   },
   searchContainer: {
     flexDirection: 'row',
@@ -497,17 +505,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  employeeNameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  profileImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 12,
-  },
-  profileInitials: {
+  avatarContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -516,17 +514,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
-  initialsText: {
+  avatarText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  employeeHeaderText: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   employeeName: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
-  position: {
+  positionText: {
     color: '#D1D5DB',
     fontSize: 14,
   },
@@ -540,10 +542,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  employeeDetails: {
+  employeeDetailsSection: {
     marginTop: 8,
   },
-  detailItem: {
+  detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 4,
@@ -553,14 +555,29 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 6,
   },
-  deleteButton: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 30,
-    height: 30,
-    justifyContent: 'center',
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
     alignItems: 'center',
+    marginTop: 8,
+  },
+  editButton: {
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+  deleteButton: {
+    backgroundColor: '#F87171',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 4,
+  },
+  actionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   emptyContainer: {
     flex: 1,
@@ -568,11 +585,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 32,
   },
-  emptyText: {
-    color: '#6B7280',
-    marginTop: 12,
-    textAlign: 'center',
+  emptyTitle: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    color: '#9CA3AF',
     fontSize: 14,
+    textAlign: 'center',
+  },
+  emptyActionButton: {
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 4,
+    marginTop: 16,
+  },
+  emptyActionText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });
 

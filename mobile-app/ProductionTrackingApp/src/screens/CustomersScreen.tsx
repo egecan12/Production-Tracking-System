@@ -195,14 +195,15 @@ const CustomersScreen = () => {
         customer.company_name.toLowerCase().includes(searchLower) ||
         customer.name.toLowerCase().includes(searchLower) ||
         customer.contact_email.toLowerCase().includes(searchLower) ||
+        customer.phone_number.toLowerCase().includes(searchLower) ||
         (customer.city && customer.city.toLowerCase().includes(searchLower))
       );
     }
     
     // Status filter
     if (status) {
-      const isActive = status === 'Active';
-      result = result.filter(customer => customer.is_active === isActive);
+      const isActiveFilter = status === 'active';
+      result = result.filter(customer => customer.is_active === isActiveFilter);
     }
     
     setFilteredCustomers(result);
@@ -215,6 +216,7 @@ const CustomersScreen = () => {
 
   // Date format
   const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
     const date = new Date(dateStr);
     return date.toLocaleDateString();
   };
@@ -238,10 +240,9 @@ const CustomersScreen = () => {
 
   // Show customer details
   const handleViewCustomer = (customer: Customer) => {
-    Alert.alert(
-      customer.company_name,
-      `Contact: ${customer.name}\nEmail: ${customer.contact_email}\nPhone: ${customer.phone_number}\n\nAddress: ${customer.address || 'Not specified'}\n${customer.city || ''}, ${customer.country || ''}\n\nTotal Orders: ${customer.total_orders || 0}\nLast Order: ${customer.last_order_date || 'None'}\nStatus: ${customer.is_active ? 'Active' : 'Inactive'}`
-    );
+    navigation.navigate('CustomerDetail', {
+      customerId: customer.id
+    });
   };
 
   // Edit customer
@@ -262,11 +263,19 @@ const CustomersScreen = () => {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
-            // Mock delete operation
-            const updatedCustomers = customers.filter(customer => customer.id !== id);
-            setCustomers(updatedCustomers);
-            Alert.alert('Success', 'Customer deleted successfully.');
+          onPress: async () => {
+            try {
+              const response = await customersApi.delete(id);
+              if (response && response.success) {
+                loadCustomers();
+                Alert.alert('Success', 'Customer has been deleted.');
+              } else {
+                throw new Error('Failed to delete customer');
+              }
+            } catch (error) {
+              console.error('Error deleting customer:', error);
+              Alert.alert('Error', 'An error occurred while deleting the customer.');
+            }
           }
         }
       ]
@@ -274,8 +283,26 @@ const CustomersScreen = () => {
   };
 
   // Change status filter
-  const changeStatusFilter = (status: string) => {
-    setStatusFilter(current => current === status ? null : status);
+  const changeStatusFilter = (status: string | null) => {
+    setStatusFilter(status === 'all' ? null : status);
+  };
+
+  // Get initials for avatar
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  // Format phone number
+  const formatPhoneNumber = (phoneNumber: string): string => {
+    const numbers = phoneNumber.replace(/\D/g, "");
+    
+    if (numbers.length === 10) {
+      return `0(${numbers.slice(0, 3)}) ${numbers.slice(3, 6)} ${numbers.slice(6, 8)} ${numbers.slice(8, 10)}`;
+    } else if (numbers.length === 11 && numbers.startsWith("0")) {
+      return `0(${numbers.slice(1, 4)}) ${numbers.slice(4, 7)} ${numbers.slice(7, 9)} ${numbers.slice(9, 11)}`;
+    }
+    
+    return phoneNumber;
   };
 
   // Customer item render function
@@ -283,85 +310,67 @@ const CustomersScreen = () => {
     <TouchableOpacity 
       style={styles.customerItem}
       onPress={() => handleViewCustomer(item)}
+      activeOpacity={0.7}
     >
       <View style={styles.customerHeader}>
-        <View style={styles.customerNameContainer}>
-          {item.profile_image ? (
-            <Image 
-              source={{ uri: item.profile_image }} 
-              style={styles.profileImage}
-            />
-          ) : (
-            <View style={styles.profileInitials}>
-              <Text style={styles.initialsText}>
-                {(item.company_name || '').charAt(0)}
-              </Text>
-            </View>
-          )}
-          <View>
-            <Text style={styles.companyName}>{item.company_name}</Text>
-            <Text style={styles.contactName}>{item.name}</Text>
-          </View>
+        <View style={styles.avatarContainer}>
+          <Text style={styles.avatarText}>{getInitials(item.company_name)}</Text>
         </View>
-        <StatusBadge isActive={item.is_active} />
+        <View style={styles.customerHeaderText}>
+          <Text style={styles.companyName}>{item.company_name}</Text>
+          <Text style={styles.customerName}>{item.name}</Text>
+        </View>
+        <View style={[styles.statusBadge, { backgroundColor: item.is_active ? '#10B981' : '#EF4444' }]}>
+          <Text style={styles.statusText}>{item.is_active ? 'Active' : 'Inactive'}</Text>
+        </View>
       </View>
       
-      <View style={styles.customerDetails}>
-        {item.contact_email && (
-          <View style={styles.detailItem}>
-            <Icon name="email" size={14} color="#9CA3AF" />
-            <Text style={styles.detailText}>{item.contact_email}</Text>
-          </View>
-        )}
-        
-        {item.phone_number && (
-          <View style={styles.detailItem}>
-            <Icon name="phone" size={14} color="#9CA3AF" />
-            <Text style={styles.detailText}>{item.phone_number}</Text>
-          </View>
-        )}
-        
+      <View style={styles.customerDetailsSection}>
+        <View style={styles.detailRow}>
+          <Icon name="email" size={16} color="#9CA3AF" />
+          <Text style={styles.detailText}>{item.contact_email}</Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Icon name="phone" size={16} color="#9CA3AF" />
+          <Text style={styles.detailText}>{formatPhoneNumber(item.phone_number)}</Text>
+        </View>
         {item.city && (
-          <View style={styles.detailItem}>
-            <Icon name="location-on" size={14} color="#9CA3AF" />
+          <View style={styles.detailRow}>
+            <Icon name="location-on" size={16} color="#9CA3AF" />
             <Text style={styles.detailText}>{item.city}, {item.country}</Text>
           </View>
         )}
-        
-        {item.total_orders !== undefined && (
-          <View style={styles.detailItem}>
-            <Icon name="shopping-bag" size={14} color="#9CA3AF" />
-            <Text style={styles.detailText}>
-              {item.total_orders} Orders | Last order: {item.last_order_date || 'None'}
-            </Text>
-          </View>
-        )}
       </View>
       
-      {canAddEdit && (
-        <View style={styles.actionButtons}>
+      <View style={styles.actionButtons}>
+        {canAddEdit && (
           <TouchableOpacity 
             style={styles.editButton}
             onPress={() => handleEditCustomer(item)}
+            activeOpacity={0.7}
           >
-            <Icon name="edit" size={18} color="#3B82F6" />
+            <Icon name="edit" size={16} color="#FFFFFF" />
+            <Text style={styles.editButtonText}>Edit</Text>
           </TouchableOpacity>
+        )}
+        {canAddEdit && (
           <TouchableOpacity 
             style={styles.deleteButton}
             onPress={() => handleDeleteCustomer(item.id)}
+            activeOpacity={0.7}
           >
-            <Icon name="delete" size={18} color="#F87171" />
+            <Icon name="delete" size={20} color="#FFFFFF" />
           </TouchableOpacity>
-        </View>
-      )}
+        )}
+      </View>
     </TouchableOpacity>
   );
 
   // Statü listesi
   const statusOptions = [
-    { value: 'Active', label: 'Active' },
-    { value: 'Inactive', label: 'Inactive' },
-    { value: 'Pending', label: 'Pending' },
+    { value: 'all', label: 'All' },
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
   ];
 
   return (
@@ -372,8 +381,10 @@ const CustomersScreen = () => {
           <TouchableOpacity 
             style={styles.addButton}
             onPress={handleAddCustomer}
+            activeOpacity={0.8}
           >
-            <Icon name="add" size={24} color="#FFFFFF" />
+            <Icon name="add" size={20} color="#FFFFFF" />
+            <Text style={styles.addButtonText}>Add</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -398,29 +409,45 @@ const CustomersScreen = () => {
         <Text style={styles.filterLabel}>Status:</Text>
         <ScrollablePills
           options={[
-            { value: 'Active', label: 'Active' },
-            { value: 'Inactive', label: 'Inactive' },
-            { value: 'Pending', label: 'Pending' },
+            { value: 'all', label: 'All' },
+            { value: 'active', label: 'Active' },
+            { value: 'inactive', label: 'Inactive' },
           ]}
-          selectedValue={statusFilter}
+          selectedValue={statusFilter || 'all'}
           onSelect={changeStatusFilter}
         />
       </View>
       
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#3B82F6" />
+          <ActivityIndicator size="large" color="#60A5FA" />
+          <Text style={styles.loadingText}>Loading customers...</Text>
         </View>
       ) : (
         <>
           {filteredCustomers.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Icon name="business" size={48} color="#6B7280" />
-              <Text style={styles.emptyText}>
-                {searchText || statusFilter
-                  ? 'No customers found matching your criteria.' 
-                  : 'No customers yet.'}
+              <Icon name="business" size={64} color="#6B7280" />
+              <Text style={styles.emptyTitle}>
+                {searchText || statusFilter 
+                  ? 'No customers found' 
+                  : 'No customers registered yet'}
               </Text>
+              <Text style={styles.emptySubtitle}>
+                {searchText || statusFilter
+                  ? 'Try adjusting your search or filter criteria'
+                  : 'Add your first customer to get started'}
+              </Text>
+              {!searchText && !statusFilter && canAddEdit && (
+                <TouchableOpacity 
+                  style={styles.emptyActionButton}
+                  onPress={handleAddCustomer}
+                  activeOpacity={0.8}
+                >
+                  <Icon name="add" size={20} color="#FFFFFF" />
+                  <Text style={styles.emptyActionText}>Add First Customer</Text>
+                </TouchableOpacity>
+              )}
             </View>
           ) : (
             <FlatList
@@ -428,6 +455,7 @@ const CustomersScreen = () => {
               keyExtractor={(item) => item.id.toString()}
               renderItem={renderCustomer}
               contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}
@@ -435,8 +463,8 @@ const CustomersScreen = () => {
                     setRefreshing(true);
                     loadCustomers();
                   }}
-                  colors={['#3B82F6']}
-                  tintColor="#3B82F6"
+                  colors={['#60A5FA']}
+                  tintColor="#60A5FA"
                 />
               }
             />
@@ -500,11 +528,17 @@ const styles = StyleSheet.create({
   },
   addButton: {
     backgroundColor: '#3B82F6',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
+  },
+  addButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   searchContainer: {
     flexDirection: 'row',
@@ -568,6 +602,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingText: {
+    color: '#FFFFFF',
+    marginTop: 12,
+    fontSize: 14,
+  },
   listContent: {
     paddingHorizontal: 16,
     paddingBottom: 16,
@@ -586,17 +625,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  customerNameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  profileImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 6,
-    marginRight: 12,
-  },
-  profileInitials: {
+  avatarContainer: {
     width: 40,
     height: 40,
     borderRadius: 6,
@@ -605,17 +634,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
-  initialsText: {
+  avatarText: {
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  customerHeaderText: {
+    flex: 1,
   },
   companyName: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
-  contactName: {
+  customerName: {
     color: '#D1D5DB',
     fontSize: 14,
   },
@@ -629,10 +661,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  customerDetails: {
+  customerDetailsSection: {
     marginTop: 8,
   },
-  detailItem: {
+  detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 4,
@@ -643,17 +675,34 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   actionButtons: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
     flexDirection: 'row',
     gap: 8,
+    marginTop: 12,
   },
   editButton: {
-    padding: 4,
+    flex: 1,
+    backgroundColor: '#3B82F6',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    gap: 4,
+  },
+  editButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
   deleteButton: {
-    padding: 4,
+    backgroundColor: '#EF4444',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    width: 40,
   },
   emptyContainer: {
     flex: 1,
@@ -661,11 +710,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 32,
   },
-  emptyText: {
+  emptyTitle: {
+    color: '#FFFFFF',
+    marginTop: 12,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  emptySubtitle: {
     color: '#6B7280',
     marginTop: 12,
     textAlign: 'center',
     fontSize: 14,
+  },
+  emptyActionButton: {
+    backgroundColor: '#3B82F6',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  emptyActionText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });
 
