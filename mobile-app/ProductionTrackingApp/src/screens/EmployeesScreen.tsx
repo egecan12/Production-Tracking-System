@@ -233,7 +233,7 @@ const EmployeesScreen = () => {
             activeOpacity={0.7}
           >
             <Icon name="edit" size={16} color="#FFFFFF" />
-            <Text style={styles.actionButtonText}>Edit</Text>
+            <Text style={styles.editButtonText}>Edit</Text>
           </TouchableOpacity>
         )}
         {canAddEdit && (
@@ -557,27 +557,33 @@ const styles = StyleSheet.create({
   },
   actionButtons: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    marginTop: 8,
+    gap: 8,
+    marginTop: 12,
   },
   editButton: {
+    flex: 1,
     backgroundColor: '#3B82F6',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-    marginRight: 8,
+    borderRadius: 6,
+    gap: 4,
   },
-  deleteButton: {
-    backgroundColor: '#F87171',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-  },
-  actionButtonText: {
+  editButtonText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: '600',
+  },
+  deleteButton: {
+    backgroundColor: '#EF4444',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    width: 40,
   },
   emptyContainer: {
     flex: 1,
