@@ -236,7 +236,7 @@ const WorkOrdersScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>İş Emirleri</Text>
+        <Text style={styles.title}>Work Orders</Text>
         {canAddEdit && (
           <TouchableOpacity 
             style={styles.addButton}

@@ -60,6 +60,56 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 npm run dev
 ```
 
+## 📱 Mobile App Configuration
+
+The mobile application located in `mobile-app/ProductionTrackingApp/` requires proper API configuration to connect to your backend server.
+
+### Setting up API Base URL
+
+Create a `.env` file in `mobile-app/ProductionTrackingApp/.env` and set your web server's IP address:
+
+```bash
+# Create .env file
+API_BASE_URL=http://YOUR_COMPUTER_IP:3000
+```
+
+### Finding Your IP Address
+
+**On macOS/Linux:**
+```bash
+ifconfig | grep "inet " | grep -v 127.0.0.1
+```
+
+**On Windows:**
+```bash
+ipconfig
+```
+
+### Important Notes for Mobile Development:
+
+1. **Start the web server with network access:**
+   ```bash
+   npm run dev -- --hostname 0.0.0.0
+   ```
+
+2. **Update .env file when IP changes:**
+   - Replace `YOUR_COMPUTER_IP` with your actual IP address (e.g., `192.168.1.100`)
+   - This IP address may change when you switch networks
+   - You'll need to update the .env file accordingly
+
+3. **Example .env configuration:**
+   ```bash
+   API_BASE_URL=http://192.168.1.100:3000
+   ```
+
+### Running the Mobile App:
+
+```bash
+cd mobile-app/ProductionTrackingApp
+npm install
+npm start
+```
+
 ## 🛠️ Technology Stack
 
 ### Frontend

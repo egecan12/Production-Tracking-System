@@ -1,7 +1,18 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Base URL for the Next.js API - this should be configurable
-const API_BASE_URL = 'http://192.168.178.75:3000';
+// Base URL for the Next.js API - loaded from environment variables
+// If not set in .env, fallback to localhost (you should update this with your computer's IP)
+let API_BASE_URL_CONFIG = 'http://192.168.178.75:3000';
+
+// Try to load from @env, fallback to hardcoded if not available
+try {
+  const { API_BASE_URL } = require('@env');
+  if (API_BASE_URL) {
+    API_BASE_URL_CONFIG = API_BASE_URL;
+  }
+} catch (e) {
+  console.log('📱 Could not load API_BASE_URL from @env, using fallback:', API_BASE_URL_CONFIG);
+}
 
 // Generic fetch function with error handling
 const fetchApi = async (
@@ -25,7 +36,7 @@ const fetchApi = async (
       config.body = JSON.stringify(body);
     }
 
-    const url = `${API_BASE_URL}${endpoint}`;
+    const url = `${API_BASE_URL_CONFIG}${endpoint}`;
     console.log('📱 Mobile API Request:', {
       url,
       method,
