@@ -509,13 +509,13 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E1E1E',
+    backgroundColor: '#1F2937',
     marginHorizontal: 16,
     marginBottom: 12,
     borderRadius: 8,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: '#374151',
   },
   searchIcon: {
     marginRight: 8,
@@ -543,14 +543,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pill: {
-    backgroundColor: '#1E1E1E',
+    backgroundColor: '#1F2937',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
     marginRight: 8,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: '#374151',
   },
   activePill: {
     backgroundColor: '#3B82F6',
@@ -573,12 +573,12 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   customerItem: {
-    backgroundColor: '#1E1E1E',
+    backgroundColor: '#1F2937',
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: '#374151',
   },
   customerHeader: {
     flexDirection: 'row',

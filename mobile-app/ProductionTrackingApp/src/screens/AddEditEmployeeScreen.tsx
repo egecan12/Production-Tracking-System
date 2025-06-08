@@ -240,12 +240,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#1E1E1E',
+    backgroundColor: '#1F2937',
     borderRadius: 8,
     padding: 12,
     color: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: '#374151',
   },
   checkboxContainer: {
     flexDirection: 'row',
