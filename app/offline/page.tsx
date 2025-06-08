@@ -1,13 +1,33 @@
 'use client';
 
-import React from 'react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 export default function OfflinePage() {
+  const [isOnline, setIsOnline] = useState(false);
+
+  useEffect(() => {
+    // Check if we're back online
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    // Set initial state
+    setIsOnline(navigator.onLine);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center justify-center p-4">
-      <div className="text-center max-w-md">
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
+      <div className="max-w-md w-full text-center">
         <div className="mb-8">
-          <div className="mx-auto w-24 h-24 bg-gray-800 rounded-full flex items-center justify-center mb-4">
+          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gray-800 flex items-center justify-center">
             <svg 
               className="w-12 h-12 text-gray-400" 
               fill="none" 
@@ -18,49 +38,58 @@ export default function OfflinePage() {
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
                 strokeWidth={2} 
-                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" 
+                d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2v2m0 16v2m9-9h-2M5 12H3" 
               />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">You're Offline</h1>
-          <p className="text-gray-400 mb-6">
-            It looks like you've lost your internet connection. Some features may not be available.
+          
+          <h1 className="text-3xl font-bold text-white mb-4">
+            {isOnline ? 'Back Online!' : 'You\'re Offline'}
+          </h1>
+          
+          <p className="text-gray-300 mb-6">
+            {isOnline 
+              ? 'Great! Your internet connection has been restored.'
+              : 'It looks like you\'re not connected to the internet. Some features may not be available.'
+            }
           </p>
         </div>
 
-        <div className="bg-gray-800 rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold text-white mb-3">What you can still do:</h2>
-          <ul className="text-left text-gray-300 space-y-2">
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-              View previously loaded data
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-              Use the wire calculator
-            </li>
-            <li className="flex items-center">
-              <svg className="w-5 h-5 text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-              Browse cached pages
-            </li>
-          </ul>
+        <div className="space-y-4">
+          {isOnline ? (
+            <Link
+              href="/"
+              className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+              style={{ cursor: 'pointer' }}
+            >
+              Return to App
+            </Link>
+          ) : (
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full bg-gray-700 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+              style={{ cursor: 'pointer' }}
+            >
+              Try Again
+            </button>
+          )}
+          
+          <div className="text-sm text-gray-400">
+            <p>Connection Status: 
+              <span className={`ml-1 font-medium ${isOnline ? 'text-green-400' : 'text-red-400'}`}>
+                {isOnline ? 'Online' : 'Offline'}
+              </span>
+            </p>
+          </div>
         </div>
 
-        <button 
-          onClick={() => window.location.reload()} 
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 cursor-pointer"
-        >
-          Try Again
-        </button>
-
-        <div className="mt-6 text-sm text-gray-500">
-          <p>ProdTrack - Production Management System</p>
+        <div className="mt-8 p-4 bg-gray-800 rounded-lg">
+          <h3 className="text-lg font-medium text-white mb-2">While Offline:</h3>
+          <ul className="text-sm text-gray-300 space-y-1 text-left">
+            <li>• Previously loaded data may still be available</li>
+            <li>• New data cannot be synchronized</li>
+            <li>• Some features require internet connection</li>
+          </ul>
         </div>
       </div>
     </div>

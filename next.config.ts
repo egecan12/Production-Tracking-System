@@ -2,7 +2,7 @@ import withPWA from 'next-pwa';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false, // Keep disabled to prevent double rendering
   eslint: {
     // Allow production builds to successfully complete even if there are ESLint errors
     ignoreDuringBuilds: true,
@@ -17,7 +17,8 @@ const nextConfig = {
 const pwaConfig = withPWA({
   dest: 'public',
   register: true,
-  skipWaiting: true,
+  skipWaiting: false, // Prevent automatic activation to avoid reload loops
+  disable: process.env.NODE_ENV === 'development', // Disable in development to prevent issues
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -84,7 +85,11 @@ const pwaConfig = withPWA({
   ],
   fallbacks: {
     document: '/offline',
+    image: '/static/images/fallback.png',
+    audio: '/static/audio/fallback.mp3',
+    video: '/static/video/fallback.mp4',
+    font: '/static/font/fallback.woff2',
   },
 });
 
-export default pwaConfig(nextConfig);
+export default pwaConfig(nextConfig); 

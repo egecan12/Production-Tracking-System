@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 
 interface SystemAuthProviderProps {
@@ -19,35 +19,66 @@ export default function SystemAuthProvider({
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+  const initializedRef = useRef(false);
+
+  // Memoize public path check to prevent unnecessary calculations
+  const isPublicPath = useMemo(() => {
+    return PUBLIC_PATHS.includes(pathname) || 
+           PUBLIC_PATHS.some(path => pathname.startsWith(path));
+  }, [pathname]);
+
+  // Memoize auth check to prevent multiple localStorage reads
+  const checkAuth = useCallback(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("systemAuth") === "true";
+  }, []);
 
   useEffect(() => {
-    // Tarayıcı tarafında çalıştırılacak
-    if (typeof window !== "undefined") {
-      // Token kontrolü (systemAuth)
-      const authStatus = localStorage.getItem("systemAuth") === "true";
+    // Only run auth check once during initial mount
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+      
+      const authStatus = checkAuth();
       setIsAuthenticated(authStatus);
-
-      // Şu anki sayfa giriş gerektirmeyen bir sayfa mı kontrol et
-      const isPublicPath = PUBLIC_PATHS.includes(pathname) || 
-                         PUBLIC_PATHS.some(path => pathname.startsWith(path));
-
-      // Eğer token yoksa ve korumalı bir sayfaya erişmeye çalışıyorsa giriş sayfasına yönlendir
+      
+      // Handle redirects only on initial load
       if (!authStatus && !isPublicPath) {
-        console.log("Auth required, redirecting to login page");
-        router.push('/auth/system-login');
+        router.replace('/auth/system-login');
+        return;
       }
-
-      // Eğer token varsa ve giriş sayfasındaysa ana sayfaya yönlendir
+      
       if (authStatus && pathname === '/auth/system-login') {
-        console.log("Already authenticated, redirecting to homepage");
-        router.push('/');
+        router.replace('/');
+        return;
       }
-
+      
       setIsLoading(false);
     }
-  }, [pathname, router]);
+  }, []); // Empty dependency array - only run once
 
-  // Yükleme esnasında bir gösterge göster (opsiyonel)
+  // Handle pathname changes without full auth re-check
+  useEffect(() => {
+    if (initializedRef.current && !isLoading) {
+      const authStatus = checkAuth();
+      
+      // Only redirect if auth status has actually changed
+      if (authStatus !== isAuthenticated) {
+        setIsAuthenticated(authStatus);
+        
+        if (!authStatus && !isPublicPath) {
+          router.replace('/auth/system-login');
+          return;
+        }
+        
+        if (authStatus && pathname === '/auth/system-login') {
+          router.replace('/');
+          return;
+        }
+      }
+    }
+  }, [pathname, isPublicPath, checkAuth, isAuthenticated, isLoading]);
+
+  // Show loading screen
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -56,16 +87,16 @@ export default function SystemAuthProvider({
     );
   }
 
-  // Auth gerektirmeyen sayfa ise (giriş sayfası gibi) direkt içeriği göster
-  if (PUBLIC_PATHS.includes(pathname) || PUBLIC_PATHS.some(path => pathname.startsWith(path))) {
+  // Show public pages without auth check
+  if (isPublicPath) {
     return <>{children}</>;
   }
 
-  // Auth gerektiren sayfalar için, token varsa içeriği göster
+  // Show protected pages only if authenticated
   if (isAuthenticated) {
     return <>{children}</>;
   }
 
-  // Bu noktaya gelindiyse, muhtemelen giriş sayfasına yönlendirme yapılıyor
+  // Return null if not authenticated (redirect should be in progress)
   return null;
 }

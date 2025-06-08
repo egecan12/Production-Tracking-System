@@ -21,8 +21,6 @@ export const metadata: Metadata = {
   keywords: ['production tracking', 'management system', 'business', 'manufacturing'],
   authors: [{ name: 'ProdTrack Team' }],
   manifest: '/manifest.json',
-  themeColor: '#3B82F6',
-  viewport: 'width=device-width, initial-scale=1',
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
@@ -59,6 +57,12 @@ export const metadata: Metadata = {
   }
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#3B82F6',
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -69,7 +73,6 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#3B82F6" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="ProdTrack" />

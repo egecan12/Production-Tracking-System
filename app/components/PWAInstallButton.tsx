@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -14,42 +14,74 @@ interface BeforeInstallPromptEvent extends Event {
 export default function PWAInstallButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const listenerAdded = useRef(false);
 
-  useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowInstallButton(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', handler);
-
-    // Check if app is already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setShowInstallButton(false);
-    }
-
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+  // Memoize event handler to prevent re-creation
+  const handleBeforeInstallPrompt = useCallback((e: Event) => {
+    e.preventDefault();
+    setDeferredPrompt(e as BeforeInstallPromptEvent);
+    setShowInstallButton(true);
   }, []);
 
-  const handleInstallClick = async () => {
+  useEffect(() => {
+    // Only add listener once
+    if (!listenerAdded.current && typeof window !== 'undefined') {
+      listenerAdded.current = true;
+
+      // Check if app is already installed
+      if (window.matchMedia('(display-mode: standalone)').matches || 
+          (window.navigator as any).standalone === true) {
+        setIsInstalled(true);
+        setShowInstallButton(false);
+        return;
+      }
+
+      // Check if running in development mode
+      if (process.env.NODE_ENV === 'development') {
+        // In development, PWA is disabled, so don't show install button
+        setShowInstallButton(false);
+        return;
+      }
+
+      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+      // Cleanup function
+      return () => {
+        if (listenerAdded.current) {
+          window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        }
+      };
+    }
+  }, []); // Empty dependency array - only run once
+
+  const handleInstallClick = useCallback(async () => {
     if (!deferredPrompt) return;
 
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      setDeferredPrompt(null);
-      setShowInstallButton(false);
+    try {
+      await deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+        setShowInstallButton(false);
+        setIsInstalled(true);
+      }
+    } catch (error) {
+      console.error('PWA install failed:', error);
     }
-  };
+  }, [deferredPrompt]);
 
-  if (!showInstallButton) return null;
+  // Don't show button if already installed or in development
+  if (!showInstallButton || isInstalled || process.env.NODE_ENV === 'development') {
+    return null;
+  }
 
   return (
     <button
       onClick={handleInstallClick}
-      className="fixed bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg transition-all duration-200 flex items-center gap-2 z-50 cursor-pointer"
+      className="fixed bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg transition-all duration-200 flex items-center gap-2 z-50"
+      style={{ cursor: 'pointer' }}
       aria-label="Install ProdTrack App"
     >
       <svg 
