@@ -483,7 +483,7 @@ const API_BASE_URL = 'http://172.20.10.2:3000';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: '#111827',
   },
   scrollView: {
     flex: 1,

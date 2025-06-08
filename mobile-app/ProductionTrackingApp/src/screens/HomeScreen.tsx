@@ -100,7 +100,7 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#121212" />
+      <StatusBar barStyle="light-content" backgroundColor="#111827" />
       <ScrollView style={styles.container}>
         <View style={styles.header}>
           <View style={styles.userInfo}>
@@ -142,7 +142,7 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: '#111827',
   },
   container: {
     flex: 1,

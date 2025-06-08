@@ -398,7 +398,7 @@ const ScrollablePills = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: '#111827',
   },
   header: {
     flexDirection: 'row',

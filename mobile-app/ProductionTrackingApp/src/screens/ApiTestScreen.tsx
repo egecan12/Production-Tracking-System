@@ -350,7 +350,7 @@ const ApiTestScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: '#111827',
   },
   keyboardView: {
     flex: 1,
