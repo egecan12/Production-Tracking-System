@@ -65,15 +65,15 @@ export default function OfflinePage() {
               Return to App
             </Link>
           ) : (
-            <button
-              onClick={() => window.location.reload()}
+        <button 
+          onClick={() => window.location.reload()} 
               className="w-full bg-gray-700 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-lg transition-colors"
               style={{ cursor: 'pointer' }}
-            >
-              Try Again
-            </button>
+        >
+          Try Again
+        </button>
           )}
-          
+
           <div className="text-sm text-gray-400">
             <p>Connection Status: 
               <span className={`ml-1 font-medium ${isOnline ? 'text-green-400' : 'text-red-400'}`}>

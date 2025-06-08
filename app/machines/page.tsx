@@ -297,9 +297,9 @@ export default function MachinesPage() {
     <main className="min-h-screen bg-gray-900">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-white">Machine Management</h1>
-          <div className="flex space-x-3">
+        <div className="flex space-x-3">
             <button
               onClick={() => setShowAddForm(!showAddForm)}
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
@@ -310,18 +310,18 @@ export default function MachinesPage() {
               </svg>
               Add Machine
             </button>
-            <Link
-              href="/"
+          <Link
+            href="/"
               className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-4 rounded-lg transition-colors"
               style={{ cursor: 'pointer' }}
-            >
+          >
               <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
-              Home
-            </Link>
-          </div>
+            Home
+          </Link>
         </div>
+      </div>
 
         {error && (
           <div className="bg-red-900 text-red-300 px-4 py-3 rounded-lg mb-4 border border-red-700">
@@ -473,13 +473,13 @@ export default function MachinesPage() {
                 </svg>
                 Add First Machine
               </button>
-            )}
-          </div>
-        ) : (
+          )}
+        </div>
+      ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredMachines.map((machine) => (
               <div
-                key={machine.id}
+              key={machine.id}
                 className="bg-gray-800 rounded-lg p-4 border border-gray-700 hover:bg-gray-750 transition-colors"
               >
                 {/* Header */}
@@ -510,11 +510,11 @@ export default function MachinesPage() {
                   <div className="flex items-center text-gray-400 text-sm">
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+                        </svg>
                     <span className={machine.operator_count > 0 ? "text-blue-400 font-medium" : ""}>
-                      {machine.operator_count} Operators
-                    </span>
-                  </div>
+                          {machine.operator_count} Operators
+                        </span>
+                      </div>
                   {machine.model && (
                     <div className="flex items-center text-gray-400 text-sm">
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -523,7 +523,7 @@ export default function MachinesPage() {
                       Model: {machine.model}
                     </div>
                   )}
-                </div>
+                  </div>
 
                 {/* Action Buttons */}
                 <div className="flex gap-2">
@@ -552,9 +552,9 @@ export default function MachinesPage() {
                   )}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+          ))}
+        </div>
+      )}
       </div>
 
       <ConfirmModal

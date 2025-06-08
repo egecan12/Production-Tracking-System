@@ -19,9 +19,9 @@ export default function PWAInstallButton() {
 
   // Memoize event handler to prevent re-creation
   const handleBeforeInstallPrompt = useCallback((e: Event) => {
-    e.preventDefault();
-    setDeferredPrompt(e as BeforeInstallPromptEvent);
-    setShowInstallButton(true);
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      setShowInstallButton(true);
   }, []);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export default function PWAInstallButton() {
     if (!listenerAdded.current && typeof window !== 'undefined') {
       listenerAdded.current = true;
 
-      // Check if app is already installed
+    // Check if app is already installed
       if (window.matchMedia('(display-mode: standalone)').matches || 
           (window.navigator as any).standalone === true) {
         setIsInstalled(true);
@@ -40,9 +40,9 @@ export default function PWAInstallButton() {
       // Check if running in development mode
       if (process.env.NODE_ENV === 'development') {
         // In development, PWA is disabled, so don't show install button
-        setShowInstallButton(false);
+      setShowInstallButton(false);
         return;
-      }
+    }
 
       window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
@@ -60,11 +60,11 @@ export default function PWAInstallButton() {
 
     try {
       await deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      
-      if (outcome === 'accepted') {
-        setDeferredPrompt(null);
-        setShowInstallButton(false);
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+      setShowInstallButton(false);
         setIsInstalled(true);
       }
     } catch (error) {

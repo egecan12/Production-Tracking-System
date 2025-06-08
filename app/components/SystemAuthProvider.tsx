@@ -40,18 +40,18 @@ export default function SystemAuthProvider({
       
       const authStatus = checkAuth();
       setIsAuthenticated(authStatus);
-      
+
       // Handle redirects only on initial load
       if (!authStatus && !isPublicPath) {
         router.replace('/auth/system-login');
         return;
       }
-      
+
       if (authStatus && pathname === '/auth/system-login') {
         router.replace('/');
         return;
       }
-      
+
       setIsLoading(false);
     }
   }, []); // Empty dependency array - only run once
@@ -60,7 +60,7 @@ export default function SystemAuthProvider({
   useEffect(() => {
     if (initializedRef.current && !isLoading) {
       const authStatus = checkAuth();
-      
+
       // Only redirect if auth status has actually changed
       if (authStatus !== isAuthenticated) {
         setIsAuthenticated(authStatus);
