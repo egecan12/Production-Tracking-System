@@ -45,10 +45,9 @@ const LoginScreen = () => {
       if (!response.success) {
         Alert.alert('Login Failed', response.message || 'Invalid credentials');
       } else {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Home' }],
-        });
+        // Login successful - no manual navigation needed
+        // AppNavigator will automatically detect the auth state change and redirect
+        console.log('✅ Login successful, waiting for AppNavigator to handle navigation...');
       }
     } catch (error: any) {
       console.error('Login error:', error);

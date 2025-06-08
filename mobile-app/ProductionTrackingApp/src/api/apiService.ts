@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Base URL for the Next.js API - this should be configurable
-const API_BASE_URL = 'http://172.20.10.2:3000';
+const API_BASE_URL = 'http://192.168.178.75:3000';
 
 // Generic fetch function with error handling
 const fetchApi = async (
@@ -25,8 +25,23 @@ const fetchApi = async (
       config.body = JSON.stringify(body);
     }
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    const url = `${API_BASE_URL}${endpoint}`;
+    console.log('📱 Mobile API Request:', {
+      url,
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined
+    });
+
+    const response = await fetch(url, config);
     
+    console.log('📱 Mobile API Response:', {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok,
+      headers: Object.fromEntries(response.headers.entries())
+    });
+
     // Handle 404 and other error status codes
     if (!response.ok) {
       if (response.status === 404) {
@@ -34,6 +49,7 @@ const fetchApi = async (
         return method === 'GET' ? [] : { success: false, message: 'Resource not found' };
       }
       const errorText = await response.text();
+      console.log('📱 Error Response Text:', errorText);
       try {
         // Try to parse error as JSON
         const errorJson = JSON.parse(errorText);
@@ -47,7 +63,9 @@ const fetchApi = async (
     // Safe JSON parsing
     try {
       const text = await response.text();
+      console.log('📱 Response Text:', text);
       const data = text ? JSON.parse(text) : {};
+      console.log('📱 Parsed Data:', data);
       return data;
     } catch (parseError) {
       console.error('Failed to parse response as JSON:', parseError);

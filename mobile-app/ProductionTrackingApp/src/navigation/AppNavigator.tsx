@@ -161,6 +161,18 @@ const AppNavigator = () => {
     checkAuthStatus();
   }, [checkAuthStatus]);
 
+  // Re-check auth status when not authenticated (for login detection)
+  useEffect(() => {
+    if (!isAuthenticated && !isLoading) {
+      const interval = setInterval(() => {
+        console.log('🔄 Checking auth status...');
+        checkAuthStatus();
+      }, 1000); // Check every second when not authenticated
+
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, isLoading, checkAuthStatus]);
+
   if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#121212' }}>
