@@ -17,6 +17,7 @@ import MachineDetailScreen from '../screens/MachineDetailScreen';
 import EmployeesScreen from '../screens/EmployeesScreen';
 import CustomersScreen from '../screens/CustomersScreen';
 import WireProductionScreen from '../screens/WireProductionScreen';
+import WireCalculatorScreen from '../screens/WireCalculatorScreen';
 import MoreScreen from '../screens/MoreScreen';
 import EmployeeDetailScreen from '../screens/EmployeeDetailScreen';
 import WorkOrderDetailScreen from '../screens/WorkOrderDetailScreen';
@@ -111,10 +112,11 @@ const MainTabs = () => {
       {hasModuleAccess('wire-production', userRole) && (
         <Tab.Screen
           name="WireProduction"
-          component={WireProductionScreen}
+          component={WireCalculatorScreen}
           options={{
+            title: 'Wire Calculator',
             tabBarIcon: ({ color, size }) => (
-              <Icon name="settings" size={size} color={color} />
+              <Icon name="calculate" size={size} color={color} />
             ),
           }}
         />
@@ -216,6 +218,11 @@ const AppNavigator = () => {
           <MainStack.Screen 
             name="AddEditCustomer" 
             component={AddEditCustomerScreen}
+            options={{ headerShown: false }}
+          />
+          <MainStack.Screen 
+            name="WireCalculator" 
+            component={WireCalculatorScreen}
             options={{ headerShown: false }}
           />
         </MainStack.Navigator>

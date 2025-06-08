@@ -2,390 +2,324 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
-  SafeAreaView,
   TextInput,
-  TouchableOpacity,
+  StyleSheet,
   ScrollView,
+  SafeAreaView,
+  TouchableOpacity,
   Alert,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Picker } from '@react-native-picker/picker';
 
-// Material densities (g/cm³)
-const MATERIAL_DENSITIES = {
-  steel: 7.85,
-  stainless_steel: 8.0,
-  copper: 8.96,
-  aluminum: 2.7,
-  brass: 8.4,
-  titanium: 4.5,
-  gold: 19.32,
-  silver: 10.49,
-  tungsten: 19.25,
+// Spool types with their max capacities
+const spoolTable = {
+  "BÜYÜK SİLİNDİRİK TAHTA MAKARA (Ø 740 mm)": { maxKg: 110 },
+  "ORTA SİLİNDİRİK TAHTA MAKARA (Ø 640 mm)": { maxKg: 85 },
+  "KÜÇÜK PLASTİK MAKARA (Ø 350 mm)": { maxKg: 20 },
 };
 
-// Display names for material types
-const MATERIAL_NAMES = {
-  steel: 'Steel',
-  stainless_steel: 'Stainless Steel',
-  copper: 'Copper',
-  aluminum: 'Aluminum',
-  brass: 'Brass',
-  titanium: 'Titanium',
-  gold: 'Gold',
-  silver: 'Silver',
-  tungsten: 'Tungsten',
+// Utility function to calculate wire production metrics
+const calculateWireProductionMetrics = (params: {
+  nakedWeightKg: number;
+  totalInsulationKg: number;
+  insulationPerMeterGr: number;
+  wireLengthMeter: number;
+  spoolCount: number;
+  crossSectionWidthMm: number;
+  crossSectionHeightMm: number;
+  totalWeightKg: number;
+  theoreticalWeightKg: number;
+  actualWeightKg: number;
+  theoreticalProduction: number;
+  actualProduction: number;
+}) => {
+  const {
+    nakedWeightKg,
+    totalInsulationKg,
+    insulationPerMeterGr,
+    wireLengthMeter,
+    spoolCount,
+    crossSectionWidthMm,
+    crossSectionHeightMm,
+    totalWeightKg,
+    theoreticalWeightKg,
+    actualWeightKg,
+    theoreticalProduction,
+    actualProduction,
+  } = params;
+
+  // Calculate metrics
+  const insulationTotalFromGr = (insulationPerMeterGr * wireLengthMeter) / 1000;
+  const insulationRatio = nakedWeightKg > 0 ? (totalInsulationKg / nakedWeightKg) * 100 : 0;
+  const insulationPerSpool = spoolCount > 0 ? totalInsulationKg / spoolCount : 0;
+  const effectiveTotalWeight = nakedWeightKg + totalInsulationKg;
+  const effectiveWeightEfficiency = totalWeightKg > 0 ? (effectiveTotalWeight / totalWeightKg) * 100 : 0;
+  const crossSectionAreaMm2 = crossSectionWidthMm * crossSectionHeightMm;
+  const wireWeightKg = (wireLengthMeter * crossSectionAreaMm2 * 8.96) / 1_000_000;
+  const fireRate = theoreticalWeightKg > 0 ? ((theoreticalWeightKg - actualWeightKg) / theoreticalWeightKg) * 100 : 0;
+  const efficiency = theoreticalProduction > 0 ? (actualProduction / theoreticalProduction) * 100 : 0;
+
+  return {
+    insulationTotalFromGr,
+    insulationRatio,
+    insulationPerSpool,
+    effectiveTotalWeight,
+    effectiveWeightEfficiency,
+    crossSectionAreaMm2,
+    wireWeightKg,
+    fireRate,
+    efficiency,
+  };
 };
 
-// Type for calculation history
-interface CalculationHistory {
-  id: string;
-  date: string;
-  material: string;
-  diameter: number;
-  length: number;
-  quantity: number;
-  weight: number;
-}
+type MainTabParamList = {
+  Home: undefined;
+  WireProduction: undefined;
+};
+
+type WireCalculatorScreenNavigationProp = NativeStackNavigationProp<MainTabParamList, 'WireProduction'>;
 
 const WireCalculatorScreen = () => {
-  // Basic calculation parameters
-  const [material, setMaterial] = useState<keyof typeof MATERIAL_DENSITIES>('steel');
-  const [diameter, setDiameter] = useState<string>(''); // in mm
-  const [length, setLength] = useState<string>(''); // in m
-  const [quantity, setQuantity] = useState<string>('1');
-  
-  // Calculation results
-  const [weight, setWeight] = useState<number | null>(null);
-  const [surfaceArea, setSurfaceArea] = useState<number | null>(null);
-  const [volume, setVolume] = useState<number | null>(null);
-  
-  // Calculation history
-  const [history, setHistory] = useState<CalculationHistory[]>([]);
-  const [showHistory, setShowHistory] = useState(false);
-  
-  // UI states
-  const [loading, setLoading] = useState(false);
-  const [resultsVisible, setResultsVisible] = useState(false);
+  const navigation = useNavigation<WireCalculatorScreenNavigationProp>();
 
-  // Calculate
-  const calculateWire = () => {
-    // Check for empty or invalid inputs
-    if (!diameter || !length || !quantity) {
-      Alert.alert('Error', 'Please enter all values.');
-      return;
-    }
-    
-    // Convert to numerical values
-    const diameterVal = parseFloat(diameter);
-    const lengthVal = parseFloat(length);
-    const quantityVal = parseInt(quantity, 10);
-    
-    if (isNaN(diameterVal) || isNaN(lengthVal) || isNaN(quantityVal)) {
-      Alert.alert('Error', 'Please enter valid numeric values.');
-      return;
-    }
-    
-    if (diameterVal <= 0 || lengthVal <= 0 || quantityVal <= 0) {
-      Alert.alert('Error', 'Please enter positive values.');
-      return;
-    }
-    
-    setLoading(true);
-    
-    setTimeout(() => {
-      // Calculations
-      // - Convert diameter from mm to cm (density is in g/cm³)
-      const diameterCm = diameterVal / 10;
-      // - Convert length from m to cm
-      const lengthCm = lengthVal * 100;
-      // - Radius
-      const radiusCm = diameterCm / 2;
-      
-      // Calculate volume (cm³): π * r² * length
-      const volumeVal = Math.PI * radiusCm * radiusCm * lengthCm;
-      
-      // Calculate surface area (cm²): 2 * π * r * length
-      const surfaceAreaVal = 2 * Math.PI * radiusCm * lengthCm;
-      
-      // Calculate weight (g): volume * density
-      const densityGCm3 = MATERIAL_DENSITIES[material];
-      const weightVal = volumeVal * densityGCm3;
-      
-      // Multiply by quantity
-      const totalWeight = weightVal * quantityVal;
-      
-      // Set results
-      setVolume(volumeVal * quantityVal);
-      setSurfaceArea(surfaceAreaVal * quantityVal);
-      setWeight(totalWeight);
-      
-      // Add to history
-      const newHistory: CalculationHistory = {
-        id: Date.now().toString(),
-        date: new Date().toLocaleString(),
-        material,
-        diameter: diameterVal,
-        length: lengthVal,
-        quantity: quantityVal,
-        weight: totalWeight,
-      };
-      
-      setHistory(prev => [newHistory, ...prev].slice(0, 10)); // Keep last 10 records
-      
-      setLoading(false);
-      setResultsVisible(true);
-    }, 500); // Short delay for calculation effect
+  // State for input values
+  const [inputs, setInputs] = useState({
+    nakedWeightKg: '',
+    totalInsulationKg: '',
+    insulationPerMeterGr: '',
+    wireLengthMeter: '',
+    spoolCount: '',
+    crossSectionWidthMm: '',
+    crossSectionHeightMm: '',
+    totalWeightKg: '',
+    theoreticalWeightKg: '',
+    actualWeightKg: '',
+    theoreticalProduction: '',
+    actualProduction: '',
+  });
+
+  // State for selected spool type
+  const [selectedSpool, setSelectedSpool] = useState<string>('');
+
+  // State for calculated metrics
+  const [metrics, setMetrics] = useState({
+    insulationTotalFromGr: 0,
+    insulationRatio: 0,
+    insulationPerSpool: 0,
+    effectiveTotalWeight: 0,
+    effectiveWeightEfficiency: 0,
+    crossSectionAreaMm2: 0,
+    wireWeightKg: 0,
+    fireRate: 0,
+    efficiency: 0,
+  });
+
+  // Update metrics when inputs change
+  useEffect(() => {
+    const numericInputs = {
+      nakedWeightKg: parseFloat(inputs.nakedWeightKg) || 0,
+      totalInsulationKg: parseFloat(inputs.totalInsulationKg) || 0,
+      insulationPerMeterGr: parseFloat(inputs.insulationPerMeterGr) || 0,
+      wireLengthMeter: parseFloat(inputs.wireLengthMeter) || 0,
+      spoolCount: parseFloat(inputs.spoolCount) || 0,
+      crossSectionWidthMm: parseFloat(inputs.crossSectionWidthMm) || 0,
+      crossSectionHeightMm: parseFloat(inputs.crossSectionHeightMm) || 0,
+      totalWeightKg: parseFloat(inputs.totalWeightKg) || 0,
+      theoreticalWeightKg: parseFloat(inputs.theoreticalWeightKg) || 0,
+      actualWeightKg: parseFloat(inputs.actualWeightKg) || 0,
+      theoreticalProduction: parseFloat(inputs.theoreticalProduction) || 0,
+      actualProduction: parseFloat(inputs.actualProduction) || 0,
+    };
+    setMetrics(calculateWireProductionMetrics(numericInputs));
+  }, [inputs]);
+
+  // Handle input changes
+  const handleInputChange = (field: string, value: string) => {
+    setInputs(prev => ({ ...prev, [field]: value }));
   };
-  
-  // Reset
-  const resetCalculator = () => {
-    setDiameter('');
-    setLength('');
-    setQuantity('1');
-    setWeight(null);
-    setSurfaceArea(null);
-    setVolume(null);
-    setResultsVisible(false);
+
+  // Check if the weight exceeds spool capacity
+  const isOverCapacity = () => {
+    if (!selectedSpool || !metrics.effectiveTotalWeight) return false;
+
+    const spoolCapacity = spoolTable[selectedSpool as keyof typeof spoolTable]?.maxKg || 0;
+    const spoolCount = parseFloat(inputs.spoolCount) || 0;
+    const weightPerSpool = spoolCount > 0 ? metrics.effectiveTotalWeight / spoolCount : metrics.effectiveTotalWeight;
+
+    return weightPerSpool > spoolCapacity;
   };
-  
-  // Load history item
-  const loadHistoryItem = (item: CalculationHistory) => {
-    setMaterial(item.material as keyof typeof MATERIAL_DENSITIES);
-    setDiameter(item.diameter.toString());
-    setLength(item.length.toString());
-    setQuantity(item.quantity.toString());
-    setWeight(item.weight);
-    
-    // Recalculate other values
-    const diameterCm = item.diameter / 10;
-    const lengthCm = item.length * 100;
-    const radiusCm = diameterCm / 2;
-    
-    const volumeVal = Math.PI * radiusCm * radiusCm * lengthCm * item.quantity;
-    const surfaceAreaVal = 2 * Math.PI * radiusCm * lengthCm * item.quantity;
-    
-    setVolume(volumeVal);
-    setSurfaceArea(surfaceAreaVal);
-    
-    setResultsVisible(true);
-    setShowHistory(false);
+
+  // Check if cross section area exceeds maximum for hadde
+  const isHaddeExceeded = () => {
+    return metrics.crossSectionAreaMm2 > 100;
   };
-  
-  // Delete history item
-  const deleteHistoryItem = (id: string) => {
-    setHistory(prev => prev.filter(item => item.id !== id));
+
+  // Format numbers for display
+  const formatNumber = (num: number, decimals = 2) => {
+    return num.toFixed(decimals);
   };
-  
-  // Results view
-  const renderResults = () => {
-    if (!resultsVisible) return null;
-    
-    return (
-      <View style={styles.resultsContainer}>
-        <View style={styles.resultHeader}>
-          <Text style={styles.resultTitle}>Calculation Results</Text>
-          <TouchableOpacity onPress={resetCalculator}>
-            <Icon name="refresh" size={20} color="#3B82F6" />
-          </TouchableOpacity>
-        </View>
-        
-        <View style={styles.resultRow}>
-          <Text style={styles.resultLabel}>Total Weight:</Text>
-          <Text style={styles.resultValue}>
-            {weight !== null ? `${(weight / 1000).toFixed(3)} kg` : '-'}
-          </Text>
-        </View>
-        
-        <View style={styles.resultRow}>
-          <Text style={styles.resultLabel}>Unit Weight:</Text>
-          <Text style={styles.resultValue}>
-            {weight !== null && parseInt(quantity) > 0 
-              ? `${((weight / parseInt(quantity)) / 1000).toFixed(3)} kg/pc` 
-              : '-'}
-          </Text>
-        </View>
-        
-        <View style={styles.resultRow}>
-          <Text style={styles.resultLabel}>Total Volume:</Text>
-          <Text style={styles.resultValue}>
-            {volume !== null ? `${volume.toFixed(2)} cm³` : '-'}
-          </Text>
-        </View>
-        
-        <View style={styles.resultRow}>
-          <Text style={styles.resultLabel}>Surface Area:</Text>
-          <Text style={styles.resultValue}>
-            {surfaceArea !== null ? `${surfaceArea.toFixed(2)} cm²` : '-'}
-          </Text>
-        </View>
-        
-        <View style={styles.resultRow}>
-          <Text style={styles.resultLabel}>Material:</Text>
-          <Text style={styles.resultValue}>{MATERIAL_NAMES[material]}</Text>
-        </View>
-        
-        <TouchableOpacity 
-          style={styles.saveButton}
-          onPress={() => {
-            Alert.alert('Information', 'This feature is not yet completed. Calculation has been automatically saved to history.');
-          }}
-        >
-          <Text style={styles.saveButtonText}>Save</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  };
-  
-  // History view
-  const renderHistory = () => {
-    if (!showHistory) return null;
-    
-    return (
-      <View style={styles.historyContainer}>
-        <View style={styles.historyHeader}>
-          <Text style={styles.historyTitle}>Calculation History</Text>
-          <TouchableOpacity onPress={() => setShowHistory(false)}>
-            <Icon name="close" size={20} color="#9CA3AF" />
-          </TouchableOpacity>
-        </View>
-        
-        {history.length === 0 ? (
-          <Text style={styles.emptyText}>No calculation history yet.</Text>
-        ) : (
-          <ScrollView style={styles.historyList}>
-            {history.map((item) => (
-              <View key={item.id} style={styles.historyItem}>
-                <TouchableOpacity 
-                  style={styles.historyContent}
-                  onPress={() => loadHistoryItem(item)}
-                >
-                  <Text style={styles.historyDate}>{item.date}</Text>
-                  <Text style={styles.historyMaterial}>{MATERIAL_NAMES[item.material as keyof typeof MATERIAL_NAMES]}</Text>
-                  <Text style={styles.historyDetails}>
-                    {`Ø ${item.diameter}mm × ${item.length}m × ${item.quantity} pc`}
-                  </Text>
-                  <Text style={styles.historyWeight}>
-                    {`${(item.weight / 1000).toFixed(3)} kg`}
-                  </Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  style={styles.deleteHistoryButton}
-                  onPress={() => deleteHistoryItem(item.id)}
-                >
-                  <Icon name="delete" size={18} color="#F87171" />
-                </TouchableOpacity>
-              </View>
-            ))}
-          </ScrollView>
-        )}
-      </View>
+
+  // Clear all inputs
+  const clearInputs = () => {
+    Alert.alert(
+      'Clear All',
+      'Are you sure you want to clear all input fields?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear',
+          style: 'destructive',
+          onPress: () => {
+            setInputs({
+              nakedWeightKg: '',
+              totalInsulationKg: '',
+              insulationPerMeterGr: '',
+              wireLengthMeter: '',
+              spoolCount: '',
+              crossSectionWidthMm: '',
+              crossSectionHeightMm: '',
+              totalWeightKg: '',
+              theoreticalWeightKg: '',
+              actualWeightKg: '',
+              theoreticalProduction: '',
+              actualProduction: '',
+            });
+            setSelectedSpool('');
+          },
+        },
+      ]
     );
   };
 
-  const handleMaterialChange = (itemValue: keyof typeof MATERIAL_DENSITIES) => {
-    setMaterial(itemValue);
-  };
+  const renderInputField = (
+    field: string,
+    label: string,
+    placeholder: string,
+    keyboardType: 'numeric' | 'default' = 'numeric'
+  ) => (
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput
+        style={styles.input}
+        value={inputs[field as keyof typeof inputs]}
+        onChangeText={(value) => handleInputChange(field, value)}
+        placeholder={placeholder}
+        placeholderTextColor="#6B7280"
+        keyboardType={keyboardType}
+      />
+    </View>
+  );
+
+  const renderMetricCard = (title: string, value: string, isWarning = false, warningIcon = false) => (
+    <View style={[styles.metricCard, isWarning && styles.warningCard]}>
+      <Text style={styles.metricTitle}>{title}</Text>
+      <Text style={[styles.metricValue, isWarning && styles.warningText]}>
+        {value}
+        {warningIcon && <Text style={styles.warningIcon}> ⚠️</Text>}
+      </Text>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
-      >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Wire Calculator</Text>
-            <TouchableOpacity 
-              style={styles.historyButton}
-              onPress={() => setShowHistory(!showHistory)}
-            >
-              <Icon name="history" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Icon name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+        <Text style={styles.title}>Wire Calculator</Text>
+        <TouchableOpacity onPress={clearInputs} style={styles.clearButton}>
+          <Icon name="clear" size={24} color="#fff" />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        {/* Input Parameters Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Input Parameters</Text>
+          
+          {renderInputField('nakedWeightKg', 'Raw Weight (kg)', 'Enter raw weight')}
+          {renderInputField('totalInsulationKg', 'Total Insulation (kg)', 'Enter total insulation')}
+          {renderInputField('insulationPerMeterGr', 'Insulation per Meter (gr)', 'Enter insulation per meter')}
+          {renderInputField('wireLengthMeter', 'Wire Length (m)', 'Enter wire length')}
+          {renderInputField('spoolCount', 'Spool Count', 'Enter spool count')}
+          {renderInputField('crossSectionWidthMm', 'Cross Section Width (mm)', 'Enter width')}
+          {renderInputField('crossSectionHeightMm', 'Cross Section Height (mm)', 'Enter height')}
+          {renderInputField('totalWeightKg', 'Total Weight (kg)', 'Enter total weight')}
+          {renderInputField('theoreticalWeightKg', 'Theoretical Weight (kg)', 'Enter theoretical weight')}
+          {renderInputField('actualWeightKg', 'Actual Weight (kg)', 'Enter actual weight')}
+          {renderInputField('theoreticalProduction', 'Theoretical Production', 'Enter theoretical production')}
+          {renderInputField('actualProduction', 'Actual Production', 'Enter actual production')}
+
+          {/* Spool Type Picker */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Spool Type</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={selectedSpool}
+                style={styles.picker}
+                onValueChange={(itemValue) => setSelectedSpool(itemValue)}
+                dropdownIconColor="#fff"
+              >
+                <Picker.Item label="Select Spool Type" value="" />
+                {Object.entries(spoolTable).map(([spoolType, config]) => (
+                  <Picker.Item
+                    key={spoolType}
+                    label={`${spoolType} - (Max: ${config.maxKg} kg)`}
+                    value={spoolType}
+                  />
+                ))}
+              </Picker>
+            </View>
+            {isOverCapacity() && (
+              <Text style={styles.errorText}>❗ Selected spool capacity is exceeded!</Text>
+            )}
           </View>
+        </View>
+
+        {/* Results Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Calculated Metrics</Text>
           
-          {renderHistory()}
-          
-          {!showHistory && (
-            <>
-              <View style={styles.formContainer}>
-                <Text style={styles.sectionTitle}>Basic Parameters</Text>
-                
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Material</Text>
-                  <View style={styles.pickerContainer}>
-                    <Picker
-                      selectedValue={material}
-                      style={styles.picker}
-                      dropdownIconColor="#FFFFFF"
-                      onValueChange={handleMaterialChange}
-                    >
-                      {Object.entries(MATERIAL_NAMES).map(([key, name]) => (
-                        <Picker.Item key={key} label={name} value={key} color="#FFFFFF" />
-                      ))}
-                    </Picker>
-                  </View>
-                </View>
-                
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Diameter (mm)</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={diameter}
-                    onChangeText={setDiameter}
-                    placeholder="Ex: 2.5"
-                    placeholderTextColor="#6B7280"
-                    keyboardType="decimal-pad"
-                  />
-                </View>
-                
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Length (m)</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={length}
-                    onChangeText={setLength}
-                    placeholder="Ex: 100"
-                    placeholderTextColor="#6B7280"
-                    keyboardType="decimal-pad"
-                  />
-                </View>
-                
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Quantity</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={quantity}
-                    onChangeText={setQuantity}
-                    placeholder="Ex: 1"
-                    placeholderTextColor="#6B7280"
-                    keyboardType="number-pad"
-                  />
-                </View>
-                
-                <TouchableOpacity 
-                  style={styles.calculateButton}
-                  onPress={calculateWire}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <ActivityIndicator color="#FFFFFF" size="small" />
-                  ) : (
-                    <Text style={styles.calculateButtonText}>Calculate</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-              
-              {renderResults()}
-            </>
+          <View style={styles.metricsGrid}>
+            {renderMetricCard('Insulation Total (gr to kg)', `${formatNumber(metrics.insulationTotalFromGr)} kg`)}
+            {renderMetricCard('Insulation Ratio', `${formatNumber(metrics.insulationRatio)}%`)}
+            {renderMetricCard('Spool Insulation', `${formatNumber(metrics.insulationPerSpool)} kg/spool`)}
+            {renderMetricCard('Effective Total Weight', `${formatNumber(metrics.effectiveTotalWeight)} kg`)}
+            {renderMetricCard('Effective Weight Efficiency', `${formatNumber(metrics.effectiveWeightEfficiency)}%`)}
+            {renderMetricCard(
+              'Cross Section Area',
+              `${formatNumber(metrics.crossSectionAreaMm2)} mm²`,
+              isHaddeExceeded(),
+              isHaddeExceeded()
+            )}
+            {renderMetricCard('Wire Weight', `${formatNumber(metrics.wireWeightKg)} kg`)}
+            {renderMetricCard('Fire Rate', `${formatNumber(metrics.fireRate)}%`)}
+            {renderMetricCard('Efficiency', `${formatNumber(metrics.efficiency)}%`)}
+            {renderMetricCard(
+              'Spool Weight',
+              `${parseFloat(inputs.spoolCount) > 0 
+                ? formatNumber(metrics.effectiveTotalWeight / parseFloat(inputs.spoolCount))
+                : formatNumber(metrics.effectiveTotalWeight)
+              } kg/spool`,
+              isOverCapacity(),
+              isOverCapacity()
+            )}
+          </View>
+
+          {/* Hadde warning */}
+          {isHaddeExceeded() && (
+            <View style={styles.warningContainer}>
+              <Text style={styles.warningTitle}>⚠️ Hadde Control:</Text>
+              <Text style={styles.warningDescription}>
+                This cross section is too large – it may not fit in the hadde.
+              </Text>
+            </View>
           )}
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -393,194 +327,127 @@ const WireCalculatorScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 24,
+    backgroundColor: '#111827',
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#1F2937',
+    borderBottomWidth: 1,
+    borderBottomColor: '#374151',
+  },
+  backButton: {
+    padding: 8,
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: '600',
+    color: '#F9FAFB',
+    flex: 1,
+    textAlign: 'center',
   },
-  historyButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 20,
-    backgroundColor: '#1E1E1E',
+  clearButton: {
+    padding: 8,
   },
-  formContainer: {
-    backgroundColor: '#1E1E1E',
-    margin: 16,
-    borderRadius: 8,
+  scrollContainer: {
+    flex: 1,
     padding: 16,
-    borderWidth: 1,
-    borderColor: '#333333',
+  },
+  section: {
+    marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#3B82F6',
     marginBottom: 16,
   },
   inputGroup: {
     marginBottom: 16,
   },
-  inputLabel: {
-    color: '#9CA3AF',
-    marginBottom: 8,
+  label: {
     fontSize: 14,
+    fontWeight: '500',
+    color: '#D1D5DB',
+    marginBottom: 8,
   },
   input: {
-    backgroundColor: '#2C2C2C',
-    borderRadius: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    color: '#FFFFFF',
+    backgroundColor: '#374151',
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: '#4B5563',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    color: '#F9FAFB',
+    fontSize: 16,
   },
   pickerContainer: {
-    backgroundColor: '#2C2C2C',
-    borderRadius: 4,
+    backgroundColor: '#374151',
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: '#4B5563',
+    borderRadius: 8,
     overflow: 'hidden',
   },
   picker: {
-    color: '#FFFFFF',
-    backgroundColor: '#2C2C2C',
+    color: '#F9FAFB',
+    backgroundColor: '#374151',
   },
-  calculateButton: {
-    backgroundColor: '#3B82F6',
-    borderRadius: 4,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  calculateButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  resultsContainer: {
-    backgroundColor: '#1E1E1E',
-    margin: 16,
-    marginTop: 0,
-    borderRadius: 8,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#333333',
-  },
-  resultHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  resultTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  resultRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333333',
-  },
-  resultLabel: {
-    color: '#9CA3AF',
+  errorText: {
+    color: '#EF4444',
     fontSize: 14,
-  },
-  resultValue: {
-    color: '#FFFFFF',
-    fontSize: 14,
+    marginTop: 4,
     fontWeight: '500',
   },
-  saveButton: {
-    backgroundColor: '#059669',
-    borderRadius: 4,
-    paddingVertical: 10,
-    alignItems: 'center',
-    marginTop: 8,
+  metricsGrid: {
+    gap: 12,
   },
-  saveButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
-  historyContainer: {
-    backgroundColor: '#1E1E1E',
-    margin: 16,
+  metricCard: {
+    backgroundColor: '#374151',
     borderRadius: 8,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: '#4B5563',
   },
-  historyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+  warningCard: {
+    borderColor: '#F59E0B',
+    backgroundColor: '#451A03',
   },
-  historyTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  emptyText: {
+  metricTitle: {
+    fontSize: 14,
     color: '#9CA3AF',
-    textAlign: 'center',
-    marginVertical: 24,
-  },
-  historyList: {
-    maxHeight: 400,
-  },
-  historyItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333333',
-  },
-  historyContent: {
-    flex: 1,
-  },
-  historyDate: {
-    color: '#9CA3AF',
-    fontSize: 12,
     marginBottom: 4,
   },
-  historyMaterial: {
-    color: '#FFFFFF',
+  metricValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#F9FAFB',
+  },
+  warningText: {
+    color: '#F59E0B',
+  },
+  warningIcon: {
     fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 2,
   },
-  historyDetails: {
-    color: '#D1D5DB',
-    fontSize: 13,
+  warningContainer: {
+    backgroundColor: '#451A03',
+    borderWidth: 1,
+    borderColor: '#92400E',
+    borderRadius: 8,
+    padding: 16,
+    marginTop: 16,
   },
-  historyWeight: {
-    color: '#3B82F6',
+  warningTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#F59E0B',
+    marginBottom: 8,
+  },
+  warningDescription: {
     fontSize: 14,
-    fontWeight: 'bold',
-    marginTop: 4,
-  },
-  deleteHistoryButton: {
-    padding: 8,
+    color: '#FCD34D',
   },
 });
 

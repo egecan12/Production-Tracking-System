@@ -27,6 +27,7 @@ export type MainStackParamList = {
   AddEditMachine: { machineId?: string };
   AddEditEmployee: { employeeId?: string };
   AddEditCustomer: { customerId?: string };
+  WireCalculator: undefined;
 };
 
 declare global {

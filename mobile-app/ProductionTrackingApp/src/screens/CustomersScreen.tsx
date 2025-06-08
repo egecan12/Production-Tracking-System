@@ -17,18 +17,19 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { hasModuleAccess } from '../lib/authUtils';
 import { MainStackParamList } from '../navigation/types';
+import { customersApi } from '../api/apiService';
 
-// Müşteri tipi tanımı
+// Customer type definition
 interface Customer {
   id: string;
+  name: string;
   company_name: string;
-  contact_name: string;
-  contact_email?: string;
-  contact_phone?: string;
+  contact_email: string;
+  phone_number: string;
   address?: string;
   city?: string;
   country?: string;
-  status: string;
+  is_active: boolean;
   total_orders?: number;
   last_order_date?: string;
   logo_url?: string;
@@ -45,70 +46,70 @@ const CustomersScreen = () => {
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [canAddEdit, setCanAddEdit] = useState(false);
 
-  // Mock veri
+  // Mock data
   const mockCustomers: Customer[] = [
     {
       id: '1',
+      name: 'Ahmet Yıldız',
       company_name: 'ABC Metal Ltd.',
-      contact_name: 'Ahmet Yıldız',
       contact_email: 'ahmet@abcmetal.com',
-      contact_phone: '555-123-4567',
+      phone_number: '555-123-4567',
       address: 'Organize Sanayi Bölgesi No:45',
       city: 'İstanbul',
       country: 'Türkiye',
-      status: 'Aktif',
+      is_active: true,
       total_orders: 12,
       last_order_date: '2023-11-15'
     },
     {
       id: '2',
+      name: 'Ayşe Kaya',
       company_name: 'Demir Sanayi A.Ş.',
-      contact_name: 'Ayşe Kaya',
       contact_email: 'ayse@demirsanayi.com',
-      contact_phone: '555-234-5678',
+      phone_number: '555-234-5678',
       address: 'İkitelli Sanayi Sitesi B Blok No:8',
       city: 'İstanbul',
       country: 'Türkiye',
-      status: 'Aktif',
+      is_active: true,
       total_orders: 8,
       last_order_date: '2023-12-05'
     },
     {
       id: '3',
+      name: 'Mustafa Demir',
       company_name: 'Yıldız Çelik',
-      contact_name: 'Mustafa Demir',
       contact_email: 'mustafa@yildizcelik.com',
-      contact_phone: '555-345-6789',
+      phone_number: '555-345-6789',
       address: 'Ankara Caddesi No:25',
       city: 'Ankara',
       country: 'Türkiye',
-      status: 'Pasif',
+      is_active: false,
       total_orders: 3,
       last_order_date: '2023-06-22'
     },
     {
       id: '4',
+      name: 'Stefan Müller',
       company_name: 'Global Metals GmbH',
-      contact_name: 'Stefan Müller',
       contact_email: 'stefan@globalmetals.de',
-      contact_phone: '555-456-7890',
+      phone_number: '555-456-7890',
       address: 'Industriestrasse 45',
       city: 'Berlin',
       country: 'Almanya',
-      status: 'Aktif',
+      is_active: true,
       total_orders: 5,
       last_order_date: '2023-10-30'
     },
     {
       id: '5',
+      name: 'Zeynep Kılıç',
       company_name: 'İnci Metal Sanayi',
-      contact_name: 'Zeynep Kılıç',
       contact_email: 'zeynep@incimetal.com',
-      contact_phone: '555-567-8901',
+      phone_number: '555-567-8901',
       address: 'Atatürk Bulvarı No:78',
       city: 'İzmir',
       country: 'Türkiye',
-      status: 'Aktif',
+      is_active: true,
       total_orders: 7,
       last_order_date: '2023-11-28'
     }
@@ -126,13 +127,45 @@ const CustomersScreen = () => {
     checkPermissions();
   }, []);
 
-  // Müşterileri yükle
+  // Load customers
   const loadCustomers = async () => {
     try {
       setLoading(true);
       
-      // Gerçek API entegrasyonu buraya eklenecek
-      // Şimdilik mock veri kullanıyoruz
+      // Get customers from API
+      const response = await customersApi.getAll();
+      let data = [];
+      
+      if (response && response.data && Array.isArray(response.data)) {
+        data = response.data.map((customer: any) => ({
+          id: customer.id,
+          name: customer.name,
+          company_name: customer.company_name,
+          contact_email: customer.contact_email,
+          phone_number: customer.phone_number,
+          address: customer.address || '',
+          city: customer.city || '',
+          country: customer.country || '',
+          is_active: customer.is_active !== false,
+          total_orders: customer.total_orders || 0,
+          last_order_date: customer.last_order_date ? formatDate(customer.last_order_date) : '',
+        }));
+      } else {
+        // Fallback to mock data if API fails
+        console.log('Using mock data as fallback');
+        data = mockCustomers.map(customer => ({
+          ...customer,
+          last_order_date: customer.last_order_date ? formatDate(customer.last_order_date) : '',
+        }));
+      }
+      
+      setCustomers(data);
+      applyFilters(data, searchText, statusFilter);
+    } catch (error) {
+      console.error('Error loading customers:', error);
+      
+      // Use mock data as fallback
+      console.log('Using mock data due to error');
       const data = mockCustomers.map(customer => ({
         ...customer,
         last_order_date: customer.last_order_date ? formatDate(customer.last_order_date) : '',
@@ -140,100 +173,83 @@ const CustomersScreen = () => {
       
       setCustomers(data);
       applyFilters(data, searchText, statusFilter);
-    } catch (error) {
-      console.error('Error loading customers:', error);
-      Alert.alert('Error', 'An error occurred while loading customers.');
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  // İlk yükleme
+  // Initial load
   useEffect(() => {
     loadCustomers();
   }, []);
 
-  // Filtre fonksiyonu
+  // Filter function
   const applyFilters = (data: Customer[], search: string, status: string | null) => {
     let result = [...data];
     
-    // Metin araması
+    // Text search
     if (search) {
       const searchLower = search.toLowerCase();
       result = result.filter(customer => 
         customer.company_name.toLowerCase().includes(searchLower) ||
-        customer.contact_name.toLowerCase().includes(searchLower) ||
-        (customer.contact_email && customer.contact_email.toLowerCase().includes(searchLower)) ||
+        customer.name.toLowerCase().includes(searchLower) ||
+        customer.contact_email.toLowerCase().includes(searchLower) ||
         (customer.city && customer.city.toLowerCase().includes(searchLower))
       );
     }
     
-    // Durum filtresi
+    // Status filter
     if (status) {
-      result = result.filter(customer => customer.status === status);
+      const isActive = status === 'Active';
+      result = result.filter(customer => customer.is_active === isActive);
     }
     
     setFilteredCustomers(result);
   };
 
-  // Arama/filtre değiştiğinde
+  // When search/filter changes
   useEffect(() => {
     applyFilters(customers, searchText, statusFilter);
   }, [searchText, statusFilter, customers]);
 
-  // Tarih formatı
+  // Date format
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString();
   };
 
-  // Durum gösterimi
-  const StatusBadge = ({ status }: { status: string }) => {
-    let color;
-    switch (status.toLowerCase()) {
-      case 'active':
-      case 'aktif':
-        color = '#34D399'; // Yeşil
-        break;
-      case 'inactive':
-      case 'pasif':
-        color = '#F87171'; // Kırmızı
-        break;
-      case 'pending':
-      case 'beklemede':
-        color = '#FCD34D'; // Sarı
-        break;
-      default:
-        color = '#9CA3AF'; // Gri
-    }
+  // Status display
+  const StatusBadge = ({ isActive }: { isActive: boolean }) => {
+    const color = isActive ? '#34D399' : '#6B7280'; // Green or Gray
+    const text = isActive ? 'Active' : 'Inactive';
     
     return (
       <View style={[styles.statusBadge, { backgroundColor: color }]}>
-        <Text style={styles.statusText}>{status}</Text>
+        <Text style={styles.statusText}>{text}</Text>
       </View>
     );
   };
 
-  // Yeni müşteri ekleme
+  // Add new customer
   const handleAddCustomer = () => {
     navigation.navigate('AddEditCustomer', {});
   };
 
-  // Müşteri detayını göster
+  // Show customer details
   const handleViewCustomer = (customer: Customer) => {
     Alert.alert(
       customer.company_name,
-      `İletişim: ${customer.contact_name}\nE-posta: ${customer.contact_email || 'Belirtilmemiş'}\nTelefon: ${customer.contact_phone || 'Belirtilmemiş'}\n\nAdres: ${customer.address || 'Belirtilmemiş'}\n${customer.city || ''}, ${customer.country || ''}\n\nToplam Sipariş: ${customer.total_orders || 0}\nSon Sipariş: ${customer.last_order_date || 'Yok'}\nDurum: ${customer.status}`
+      `Contact: ${customer.name}\nEmail: ${customer.contact_email}\nPhone: ${customer.phone_number}\n\nAddress: ${customer.address || 'Not specified'}\n${customer.city || ''}, ${customer.country || ''}\n\nTotal Orders: ${customer.total_orders || 0}\nLast Order: ${customer.last_order_date || 'None'}\nStatus: ${customer.is_active ? 'Active' : 'Inactive'}`
     );
   };
 
-  // Müşteriyi düzenle
+  // Edit customer
   const handleEditCustomer = (customer: Customer) => {
     navigation.navigate('AddEditCustomer', { customerId: customer.id });
   };
 
-  // Müşteriyi sil
+  // Delete customer
   const handleDeleteCustomer = (id: string) => {
     Alert.alert(
       'Confirmation',
@@ -247,7 +263,7 @@ const CustomersScreen = () => {
           text: 'Delete',
           style: 'destructive',
           onPress: () => {
-            // Mock silme işlemi
+            // Mock delete operation
             const updatedCustomers = customers.filter(customer => customer.id !== id);
             setCustomers(updatedCustomers);
             Alert.alert('Success', 'Customer deleted successfully.');
@@ -257,12 +273,12 @@ const CustomersScreen = () => {
     );
   };
 
-  // Durum filtresini değiştir
+  // Change status filter
   const changeStatusFilter = (status: string) => {
     setStatusFilter(current => current === status ? null : status);
   };
 
-  // Müşteri öğesi render fonksiyonu
+  // Customer item render function
   const renderCustomer = ({ item }: { item: Customer }) => (
     <TouchableOpacity 
       style={styles.customerItem}
@@ -284,10 +300,10 @@ const CustomersScreen = () => {
           )}
           <View>
             <Text style={styles.companyName}>{item.company_name}</Text>
-            <Text style={styles.contactName}>{item.contact_name}</Text>
+            <Text style={styles.contactName}>{item.name}</Text>
           </View>
         </View>
-        <StatusBadge status={item.status} />
+        <StatusBadge isActive={item.is_active} />
       </View>
       
       <View style={styles.customerDetails}>
@@ -298,10 +314,10 @@ const CustomersScreen = () => {
           </View>
         )}
         
-        {item.contact_phone && (
+        {item.phone_number && (
           <View style={styles.detailItem}>
             <Icon name="phone" size={14} color="#9CA3AF" />
-            <Text style={styles.detailText}>{item.contact_phone}</Text>
+            <Text style={styles.detailText}>{item.phone_number}</Text>
           </View>
         )}
         
@@ -316,7 +332,7 @@ const CustomersScreen = () => {
           <View style={styles.detailItem}>
             <Icon name="shopping-bag" size={14} color="#9CA3AF" />
             <Text style={styles.detailText}>
-              {item.total_orders} Sipariş | Son sipariş: {item.last_order_date || 'Yok'}
+              {item.total_orders} Orders | Last order: {item.last_order_date || 'None'}
             </Text>
           </View>
         )}
@@ -351,7 +367,7 @@ const CustomersScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Müşteriler</Text>
+        <Text style={styles.title}>Customers</Text>
         {canAddEdit && (
           <TouchableOpacity 
             style={styles.addButton}
@@ -366,7 +382,7 @@ const CustomersScreen = () => {
         <Icon name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Müşteri ara..."
+          placeholder="Search customers..."
           placeholderTextColor="#9CA3AF"
           value={searchText}
           onChangeText={setSearchText}
@@ -379,7 +395,7 @@ const CustomersScreen = () => {
       </View>
       
       <View style={styles.filterContainer}>
-        <Text style={styles.filterLabel}>Durum:</Text>
+        <Text style={styles.filterLabel}>Status:</Text>
         <ScrollablePills
           options={[
             { value: 'Active', label: 'Active' },
@@ -402,8 +418,8 @@ const CustomersScreen = () => {
               <Icon name="business" size={48} color="#6B7280" />
               <Text style={styles.emptyText}>
                 {searchText || statusFilter
-                  ? 'Arama kriterlerine uygun müşteri bulunamadı.' 
-                  : 'Henüz müşteri bulunmuyor.'}
+                  ? 'No customers found matching your criteria.' 
+                  : 'No customers yet.'}
               </Text>
             </View>
           ) : (

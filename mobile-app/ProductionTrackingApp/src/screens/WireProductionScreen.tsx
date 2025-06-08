@@ -1,12 +1,30 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type MainStackParamList = {
+  WireCalculator: undefined;
+};
+
+type WireProductionScreenNavigationProp = NativeStackNavigationProp<MainStackParamList, 'WireCalculator'>;
 
 const WireProductionScreen = () => {
+  const navigation = useNavigation<WireProductionScreenNavigationProp>();
+
+  useEffect(() => {
+    // Immediately navigate to WireCalculator when this screen loads
+    const timer = setTimeout(() => {
+      navigation.navigate('WireCalculator');
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [navigation]);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Wire Production</Text>
-        <Text style={styles.subtitle}>Calculate wire production metrics</Text>
+        <Text style={styles.title}>Loading Wire Calculator...</Text>
       </View>
     </SafeAreaView>
   );
