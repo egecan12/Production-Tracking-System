@@ -11,7 +11,6 @@ export type AuthStackParamList = {
 
 export type MainTabParamList = {
   Home: undefined;
-  WorkOrders: undefined;
   Machines: undefined;
   Employees: undefined;
   Customers: undefined;
@@ -25,6 +24,9 @@ export type MainStackParamList = {
   EmployeeDetail: { employeeId: string };
   WorkOrderDetail: { workOrderId: string };
   CustomerDetail: { customerId: string };
+  AddEditMachine: { machineId?: string };
+  AddEditEmployee: { employeeId?: string };
+  AddEditCustomer: { customerId?: string };
 };
 
 declare global {

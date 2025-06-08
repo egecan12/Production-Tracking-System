@@ -89,8 +89,35 @@ export default function CustomersPage() {
 
   async function handleAddCustomer(e: React.FormEvent) {
     e.preventDefault();
+    
+    // Validation
+    if (!newCustomer.name.trim()) {
+      setError("Customer name is required.");
+      return;
+    }
+    if (!newCustomer.company_name.trim()) {
+      setError("Company name is required.");
+      return;
+    }
+    if (!newCustomer.contact_email.trim()) {
+      setError("Email is required.");
+      return;
+    }
+    if (!newCustomer.phone_number.trim()) {
+      setError("Phone number is required.");
+      return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newCustomer.contact_email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    
     try {
       setIsAddingCustomer(true);
+      setError(""); // Clear any previous errors
       
       console.log("Adding new customer:", newCustomer);
       const addedCustomers = await createData<Customer>("customers", newCustomer);
@@ -228,7 +255,7 @@ export default function CustomersPage() {
                     htmlFor="company_name"
                     className="block text-sm font-medium text-gray-300 mb-1"
                   >
-                    Company Name
+                    Company Name*
                   </label>
                   <input
                     type="text"
@@ -241,6 +268,7 @@ export default function CustomersPage() {
                       })
                     }
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
                   />
                 </div>
                 <div>
@@ -248,7 +276,7 @@ export default function CustomersPage() {
                     htmlFor="contact_email"
                     className="block text-sm font-medium text-gray-300 mb-1"
                   >
-                    Email
+                    Email*
                   </label>
                   <input
                     type="email"
@@ -261,6 +289,7 @@ export default function CustomersPage() {
                       })
                     }
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
                   />
                 </div>
                 <div>
@@ -268,7 +297,7 @@ export default function CustomersPage() {
                     htmlFor="phone_number"
                     className="block text-sm font-medium text-gray-300 mb-1"
                   >
-                    Phone Number
+                    Phone Number*
                   </label>
                   <input
                     type="tel"
@@ -282,6 +311,7 @@ export default function CustomersPage() {
                     }
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="0(5XX) XXX XX XX"
+                    required
                   />
                 </div>
               </div>

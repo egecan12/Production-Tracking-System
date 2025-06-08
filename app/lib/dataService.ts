@@ -7,12 +7,10 @@
 // Type definitions for general table operations
 export type DataAction = 'read' | 'create' | 'update' | 'delete';
 export type DataTable = 
-  | 'employees' 
-  | 'customers' 
-  | 'machines' 
-  | 'orders' 
-  | 'work_orders' 
-  | 'production_logs' 
+    | 'employees'
+  | 'customers'
+  | 'machines'
+  | 'production_logs'
   | 'production_specifications'
   | 'work_sessions';  // Work sessions table added
 

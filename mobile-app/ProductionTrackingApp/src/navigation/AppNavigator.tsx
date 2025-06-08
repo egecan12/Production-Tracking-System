@@ -11,7 +11,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 // Import screens
 import LoginScreen from '../screens/auth/LoginScreen';
 import HomeScreen from '../screens/HomeScreen';
-import WorkOrdersScreen from '../screens/WorkOrdersScreen';
+
 import MachinesScreen from '../screens/MachinesScreen';
 import MachineDetailScreen from '../screens/MachineDetailScreen';
 import EmployeesScreen from '../screens/EmployeesScreen';
@@ -21,6 +21,9 @@ import MoreScreen from '../screens/MoreScreen';
 import EmployeeDetailScreen from '../screens/EmployeeDetailScreen';
 import WorkOrderDetailScreen from '../screens/WorkOrderDetailScreen';
 import CustomerDetailScreen from '../screens/CustomerDetailScreen';
+import AddEditMachineScreen from '../screens/AddEditMachineScreen';
+import AddEditEmployeeScreen from '../screens/AddEditEmployeeScreen';
+import AddEditCustomerScreen from '../screens/AddEditCustomerScreen';
 
 // Import types
 import { AuthStackParamList, MainStackParamList, MainTabParamList } from './types';
@@ -66,17 +69,7 @@ const MainTabs = () => {
         }}
       />
       
-      {hasModuleAccess('work-orders', userRole) && (
-        <Tab.Screen
-          name="WorkOrders"
-          component={WorkOrdersScreen}
-          options={{
-            tabBarIcon: ({ color, size }) => (
-              <Icon name="assignment" size={size} color={color} />
-            ),
-          }}
-        />
-      )}
+
       
       {hasModuleAccess('machines', userRole) && (
         <Tab.Screen
@@ -209,6 +202,21 @@ const AppNavigator = () => {
             name="CustomerDetail" 
             component={CustomerDetailScreen}
             options={{ headerShown: true, title: 'Customer Details' }}
+          />
+          <MainStack.Screen 
+            name="AddEditMachine" 
+            component={AddEditMachineScreen}
+            options={{ headerShown: false }}
+          />
+          <MainStack.Screen 
+            name="AddEditEmployee" 
+            component={AddEditEmployeeScreen}
+            options={{ headerShown: false }}
+          />
+          <MainStack.Screen 
+            name="AddEditCustomer" 
+            component={AddEditCustomerScreen}
+            options={{ headerShown: false }}
           />
         </MainStack.Navigator>
       ) : (

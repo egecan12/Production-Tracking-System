@@ -12,8 +12,11 @@ import {
   Alert,
   Image,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { hasModuleAccess } from '../lib/authUtils';
+import { MainStackParamList } from '../navigation/types';
 
 // Müşteri tipi tanımı
 interface Customer {
@@ -33,6 +36,7 @@ interface Customer {
 }
 
 const CustomersScreen = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -213,7 +217,7 @@ const CustomersScreen = () => {
 
   // Yeni müşteri ekleme
   const handleAddCustomer = () => {
-    Alert.alert('Bilgi', 'Yeni müşteri ekleme sayfası henüz uygulanmadı.');
+    navigation.navigate('AddEditCustomer', {});
   };
 
   // Müşteri detayını göster
@@ -222,6 +226,11 @@ const CustomersScreen = () => {
       customer.company_name,
       `İletişim: ${customer.contact_name}\nE-posta: ${customer.contact_email || 'Belirtilmemiş'}\nTelefon: ${customer.contact_phone || 'Belirtilmemiş'}\n\nAdres: ${customer.address || 'Belirtilmemiş'}\n${customer.city || ''}, ${customer.country || ''}\n\nToplam Sipariş: ${customer.total_orders || 0}\nSon Sipariş: ${customer.last_order_date || 'Yok'}\nDurum: ${customer.status}`
     );
+  };
+
+  // Müşteriyi düzenle
+  const handleEditCustomer = (customer: Customer) => {
+    navigation.navigate('AddEditCustomer', { customerId: customer.id });
   };
 
   // Müşteriyi sil
@@ -314,12 +323,20 @@ const CustomersScreen = () => {
       </View>
       
       {canAddEdit && (
-        <TouchableOpacity 
-          style={styles.deleteButton}
-          onPress={() => handleDeleteCustomer(item.id)}
-        >
-          <Icon name="delete" size={18} color="#F87171" />
-        </TouchableOpacity>
+        <View style={styles.actionButtons}>
+          <TouchableOpacity 
+            style={styles.editButton}
+            onPress={() => handleEditCustomer(item)}
+          >
+            <Icon name="edit" size={18} color="#3B82F6" />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.deleteButton}
+            onPress={() => handleDeleteCustomer(item.id)}
+          >
+            <Icon name="delete" size={18} color="#F87171" />
+          </TouchableOpacity>
+        </View>
       )}
     </TouchableOpacity>
   );
@@ -609,14 +626,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 6,
   },
-  deleteButton: {
+  actionButtons: {
     position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 30,
-    height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+    top: 8,
+    right: 8,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  editButton: {
+    padding: 4,
+  },
+  deleteButton: {
+    padding: 4,
   },
   emptyContainer: {
     flex: 1,

@@ -6,7 +6,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-Framework-blue.svg)](https://nextjs.org/)
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 
-A comprehensive production management system for manufacturing companies, focused on order management, work orders, machine monitoring, and wire production calculation.
+A comprehensive production management system for manufacturing companies, focused on machine monitoring, employee management, customer management, and wire production calculation.
 
 <img src="https://github.com/user-attachments/assets/0ed36683-b604-4325-9340-5587d8c88c57" width="25%">
 
@@ -14,8 +14,6 @@ A comprehensive production management system for manufacturing companies, focuse
 
 ## ✨ Key Features
 
-- 📋 **Order Management**: Create and track customer orders
-- 📝 **Work Order Management**: Manage production work orders
 - 🔧 **Machine Management**: Track machine status and operation
 - 👥 **Employee Management**: Manage employee records and work assignments
 - 🏢 **Customer Management**: Maintain customer database

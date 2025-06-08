@@ -41,7 +41,7 @@ export default function EditCustomerPage() {
         if (error) throw error;
 
         if (!data) {
-          throw new Error("Müşteri bulunamadı");
+          throw new Error("Customer not found");
         }
 
         const customerData = data[0];
@@ -54,11 +54,11 @@ export default function EditCustomerPage() {
           is_active: customerData.is_active === undefined ? true : customerData.is_active,
         });
       } catch (err: unknown) {
-        console.error("Müşteri verisi alınırken hata:", err);
+        console.error("Error loading customer data:", err);
         const errorMessage =
           err instanceof Error
             ? err.message
-            : "Müşteri bilgileri yüklenirken bir hata oluştu.";
+            : "An error occurred while loading customer information.";
         setError(errorMessage);
       } finally {
         setIsLoading(false);
@@ -80,12 +80,27 @@ export default function EditCustomerPage() {
     setSuccess(null);
 
     try {
-      // Validasyon
-      if (!customer.name) {
-        throw new Error("Müşteri adı zorunludur.");
+      // Validation
+      if (!customer.name.trim()) {
+        throw new Error("Customer name is required.");
+      }
+      if (!customer.company_name.trim()) {
+        throw new Error("Company name is required.");
+      }
+      if (!customer.contact_email.trim()) {
+        throw new Error("Email is required.");
+      }
+      if (!customer.phone_number.trim()) {
+        throw new Error("Phone number is required.");
+      }
+      
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(customer.contact_email)) {
+        throw new Error("Please enter a valid email address.");
       }
 
-      // Müşteri bilgilerini güncelle
+      // Update customer information
       const { error: supabaseError } = await supabase
         .from("customers")
         .update({
@@ -98,18 +113,18 @@ export default function EditCustomerPage() {
 
       if (supabaseError) throw supabaseError;
 
-      setSuccess("Müşteri bilgileri başarıyla güncellendi!");
+      setSuccess("Customer information updated successfully!");
 
-      // 2 saniye sonra müşteriler sayfasına yönlendir
+      // Redirect to customers page after 2 seconds
       setTimeout(() => {
         router.push("/customers");
       }, 2000);
     } catch (err: unknown) {
-      console.error("Müşteri güncelleme hatası:", err);
+      console.error("Customer update error:", err);
       const errorMessage =
         err instanceof Error
           ? err.message
-          : "Müşteri güncellenirken bir hata oluştu. Lütfen tekrar deneyin.";
+          : "An error occurred while updating customer. Please try again.";
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -122,7 +137,7 @@ export default function EditCustomerPage() {
         <div className="container mx-auto px-4 py-8">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold text-gray-100">
-              Müşteri Düzenle
+              Edit Customer
             </h1>
             <div className="flex space-x-2">
               <Link
@@ -137,20 +152,20 @@ export default function EditCustomerPage() {
                 >
                   <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
                 </svg>
-                Ana Sayfa
+                Home
               </Link>
               <Link
                 href="/customers"
                 className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-4 rounded"
               >
-                Müşteri Listesine Dön
+                Back to Customer List
               </Link>
             </div>
           </div>
           <div className="text-center py-8">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
             <p className="mt-4 text-gray-300">
-              Müşteri bilgileri yükleniyor...
+              Loading customer information...
             </p>
           </div>
         </div>
@@ -163,7 +178,7 @@ export default function EditCustomerPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold text-gray-100">
-            Müşteri Düzenle
+            Edit Customer
           </h1>
           <div className="flex space-x-2">
             <Link
@@ -178,13 +193,13 @@ export default function EditCustomerPage() {
               >
                 <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
               </svg>
-              Ana Sayfa
+              Home
             </Link>
             <Link
               href="/customers"
               className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-4 rounded"
             >
-              Müşteri Listesine Dön
+              Back to Customer List
             </Link>
           </div>
         </div>
@@ -205,7 +220,7 @@ export default function EditCustomerPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                Müşteri Adı *
+                Customer Name *
               </label>
               <input
                 type="text"
@@ -214,55 +229,58 @@ export default function EditCustomerPage() {
                 onChange={handleInputChange}
                 required
                 className="w-full border border-gray-600 rounded-md shadow-sm py-2 px-3 bg-gray-700 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Müşterinin adını giriniz"
+                placeholder="Enter customer name"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                Şirket Adı
+                Company Name *
               </label>
               <input
                 type="text"
                 name="company_name"
                 value={customer.company_name}
                 onChange={handleInputChange}
+                required
                 className="w-full border border-gray-600 rounded-md shadow-sm py-2 px-3 bg-gray-700 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Şirket adını giriniz"
+                placeholder="Enter company name"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                E-posta Adresi
+                Email Address *
               </label>
               <input
                 type="email"
                 name="contact_email"
                 value={customer.contact_email}
                 onChange={handleInputChange}
+                required
                 className="w-full border border-gray-600 rounded-md shadow-sm py-2 px-3 bg-gray-700 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="iletisim@sirket.com"
+                placeholder="contact@company.com"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                Telefon Numarası
+                Phone Number *
               </label>
               <input
-                type="text"
+                type="tel"
                 name="phone_number"
                 value={customer.phone_number}
                 onChange={handleInputChange}
+                required
                 className="w-full border border-gray-600 rounded-md shadow-sm py-2 px-3 bg-gray-700 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="İsteğe bağlı"
+                placeholder="Enter phone number"
               />
             </div>
 
             <div className="mb-4">
               <label htmlFor="is_active" className="block mb-1 font-medium text-gray-300">
-                Durum
+                Status
               </label>
               <div className="flex items-center">
                 <input
@@ -274,11 +292,11 @@ export default function EditCustomerPage() {
                   className="w-5 h-5 mr-2 rounded accent-blue-500 cursor-pointer"
                 />
                 <span className="text-gray-300">
-                  {customer.is_active ? "Aktif" : "Pasif"}
+                  {customer.is_active ? "Active" : "Inactive"}
                 </span>
               </div>
               <p className="text-sm text-gray-400 mt-1">
-                Pasif müşteriler listede görünmez ve yeni sipariş oluşturma işlemlerinde kullanılamaz.
+                Inactive customers will not appear in lists and cannot be used for new orders.
               </p>
             </div>
 
@@ -287,7 +305,7 @@ export default function EditCustomerPage() {
                 href="/customers"
                 className="py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 w-1/2 text-center"
               >
-                İptal
+                Cancel
               </Link>
               <button
                 type="submit"
@@ -316,10 +334,10 @@ export default function EditCustomerPage() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    Güncelleniyor...
+                    Updating...
                   </>
                 ) : (
-                  "Güncelle"
+                  "Update"
                 )}
               </button>
             </div>

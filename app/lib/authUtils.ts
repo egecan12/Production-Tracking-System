@@ -3,8 +3,6 @@
 // Role-based module access
 export const moduleAccess = {
   // Define allowed roles for each module
-  workorders: ['admin', 'manager', 'production'],
-  orders: ['admin', 'manager', 'sales'],
   machines: ['admin', 'manager', 'maintenance', 'user'],
   employees: ['admin', 'manager', 'hr'],
   customers: ['admin', 'manager', 'sales'],

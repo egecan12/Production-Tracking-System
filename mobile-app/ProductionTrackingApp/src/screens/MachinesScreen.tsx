@@ -17,7 +17,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { machinesApi } from '../api/apiService';
 import { hasMachinePermission } from '../lib/authUtils';
-import { MachinesStackParamList } from '../navigation/AppNavigator';
+import { MainStackParamList } from '../navigation/types';
 
 // Machine type definition
 interface Machine {
@@ -36,7 +36,7 @@ interface Machine {
 }
 
 const MachinesScreen = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<MachinesStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   const [machines, setMachines] = useState<Machine[]>([]);
   const [filteredMachines, setFilteredMachines] = useState<Machine[]>([]);
   const [loading, setLoading] = useState(true);
@@ -159,13 +159,19 @@ const MachinesScreen = () => {
   // Add new machine
   const handleAddMachine = () => {
     // Navigate to add machine page
-    Alert.alert('Information', 'Add machine page not yet implemented.');
+    navigation.navigate('AddEditMachine', {});
   };
 
   // Show machine details
   const handleViewMachine = (machine: Machine) => {
     // Navigate to machine detail screen
     navigation.navigate('MachineDetail', { machineId: machine.id });
+  };
+
+  // Edit machine
+  const handleEditMachine = (machine: Machine) => {
+    // Navigate to edit machine screen
+    navigation.navigate('AddEditMachine', { machineId: machine.id });
   };
 
   // Delete machine
@@ -246,14 +252,24 @@ const MachinesScreen = () => {
         </View>
       </View>
       
-      {canDelete && (
-        <TouchableOpacity 
-          style={styles.deleteButton}
-          onPress={() => handleDeleteMachine(item.id)}
-        >
-          <Icon name="delete" size={18} color="#F87171" />
-        </TouchableOpacity>
-      )}
+      <View style={styles.actionButtons}>
+        {canAddEdit && (
+          <TouchableOpacity 
+            style={styles.editButton}
+            onPress={() => handleEditMachine(item)}
+          >
+            <Icon name="edit" size={18} color="#3B82F6" />
+          </TouchableOpacity>
+        )}
+        {canDelete && (
+          <TouchableOpacity 
+            style={styles.deleteButton}
+            onPress={() => handleDeleteMachine(item.id)}
+          >
+            <Icon name="delete" size={18} color="#F87171" />
+          </TouchableOpacity>
+        )}
+      </View>
     </TouchableOpacity>
   );
 
@@ -535,14 +551,18 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     fontSize: 12,
   },
-  deleteButton: {
+  actionButtons: {
     position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 30,
-    height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+    top: 8,
+    right: 8,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  editButton: {
+    padding: 4,
+  },
+  deleteButton: {
+    padding: 4,
   },
   emptyContainer: {
     flex: 1,

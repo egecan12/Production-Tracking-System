@@ -127,61 +127,9 @@ export const authApi = {
 };
 
 // Other API endpoints can be added here as needed, following the same pattern
-export const workOrdersApi = {
-  getAll: () => fetchApi('/api/data', 'POST', { 
-    table: 'work_orders', 
-    action: 'read' 
-  }),
-  getById: (id: string) => fetchApi('/api/data', 'POST', { 
-    table: 'work_orders', 
-    action: 'read',
-    filters: { id }
-  }),
-  create: (data: any) => fetchApi('/api/data', 'POST', { 
-    table: 'work_orders', 
-    action: 'create',
-    data
-  }),
-  update: (id: string, data: any) => fetchApi('/api/data', 'POST', { 
-    table: 'work_orders', 
-    action: 'update',
-    data,
-    filters: { id }
-  }),
-  delete: (id: string) => fetchApi('/api/data', 'POST', { 
-    table: 'work_orders', 
-    action: 'delete',
-    filters: { id }
-  }),
-};
 
-export const ordersApi = {
-  getAll: () => fetchApi('/api/data', 'POST', { 
-    table: 'orders', 
-    action: 'read' 
-  }),
-  getById: (id: string) => fetchApi('/api/data', 'POST', { 
-    table: 'orders', 
-    action: 'read',
-    filters: { id }
-  }),
-  create: (data: any) => fetchApi('/api/data', 'POST', { 
-    table: 'orders', 
-    action: 'create',
-    data
-  }),
-  update: (id: string, data: any) => fetchApi('/api/data', 'POST', { 
-    table: 'orders', 
-    action: 'update',
-    data,
-    filters: { id }
-  }),
-  delete: (id: string) => fetchApi('/api/data', 'POST', { 
-    table: 'orders', 
-    action: 'delete',
-    filters: { id }
-  }),
-};
+
+
 
 export const machinesApi = {
   getAll: () => fetchApi('/api/data', 'POST', { 
@@ -236,6 +184,35 @@ export const employeesApi = {
   }),
   delete: (id: string) => fetchApi('/api/data', 'POST', { 
     table: 'employees', 
+    action: 'delete',
+    filters: { id }
+  }),
+};
+
+export const customersApi = {
+  getAll: () => fetchApi('/api/data', 'POST', { 
+    table: 'customers', 
+    action: 'read',
+    filters: { is_active: true }
+  }),
+  getById: (id: string) => fetchApi('/api/data', 'POST', { 
+    table: 'customers', 
+    action: 'read',
+    filters: { id }
+  }),
+  create: (data: any) => fetchApi('/api/data', 'POST', { 
+    table: 'customers', 
+    action: 'create',
+    data
+  }),
+  update: (id: string, data: any) => fetchApi('/api/data', 'POST', { 
+    table: 'customers', 
+    action: 'update',
+    data,
+    filters: { id }
+  }),
+  delete: (id: string) => fetchApi('/api/data', 'POST', { 
+    table: 'customers', 
     action: 'delete',
     filters: { id }
   }),

@@ -9,21 +9,6 @@ import { hasModuleAccess } from "./lib/authUtils";
 // Define modules with English text
 const modules = [
   {
-    id: "workorders",
-    href: "/workorders",
-    title: "Work Order Management",
-    description:
-      "Create work orders, track them and monitor production metrics",
-    color: "text-purple-400",
-  },
-  {
-    id: "orders",
-    href: "/orders",
-    title: "Order Management",
-    description: "Create new orders and track existing ones",
-    color: "text-indigo-400",
-  },
-  {
     id: "machines",
     href: "/machines",
     title: "Machine Management",

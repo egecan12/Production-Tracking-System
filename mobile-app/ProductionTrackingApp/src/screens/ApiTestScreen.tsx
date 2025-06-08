@@ -13,26 +13,12 @@ import {
   Alert,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { workOrdersApi, ordersApi, machinesApi } from '../api/apiService';
+import { machinesApi } from '../api/apiService';
 
 // Make sure to update this to your correct API address
 const API_BASE_URL = 'http://172.20.10.2:3000/api';
 
 // Define the missing interfaces
-interface WorkOrder {
-  id: number;
-  name: string;
-  status: string;
-  // Add other properties as needed
-}
-
-interface Order {
-  id: number;
-  orderNumber: string;
-  customer: string;
-  // Add other properties as needed
-}
-
 interface Machine {
   id: number;
   name: string;
@@ -73,7 +59,7 @@ const fetchApi = async (endpoint: string) => {
 
 const ApiTestScreen: React.FC = () => {
   const [apiUrl, setApiUrl] = useState(API_BASE_URL);
-  const [endpoint, setEndpoint] = useState('/orders');
+  const [endpoint, setEndpoint] = useState('/machines');
   const [method, setMethod] = useState('GET');
   const [requestBody, setRequestBody] = useState('');
   const [responseData, setResponseData] = useState<any>(null);
@@ -84,16 +70,10 @@ const ApiTestScreen: React.FC = () => {
   const [responseText, setResponseText] = useState<string | null>(null);
   const [statusCode, setStatusCode] = useState<number | null>(null);
   const [responseTime, setResponseTime] = useState<number | null>(null);
-  const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
-  const [workOrdersError, setWorkOrdersError] = useState<string | null>(null);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [ordersError, setOrdersError] = useState<string | null>(null);
   const [machines, setMachines] = useState<Machine[]>([]);
   const [machinesError, setMachinesError] = useState<string | null>(null);
 
   const endpoints = [
-    '/orders',
-    '/work-orders', // Corrected from /workorders to /work-orders
     '/machines',
     '/system-auth',
     '/custom'
@@ -179,39 +159,6 @@ const ApiTestScreen: React.FC = () => {
     }
   };
 
-  const loadWorkOrders = async () => {
-    setLoading(true);
-    setWorkOrdersError('');
-    try {
-      // Corrected endpoint to match backend
-      const result = await fetchApi('/work-orders');
-      setWorkOrders(result);
-      setResponseText(JSON.stringify(result, null, 2));
-    } catch (error) {
-      console.error('İş emirleri yüklenirken hata:', error);
-      setWorkOrdersError(`Yükleme sırasında hata oluştu: ${error instanceof Error ? error.message : String(error)}`);
-      setResponseText('Error loading work orders');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadOrders = async () => {
-    setLoading(true);
-    setOrdersError('');
-    try {
-      const result = await fetchApi('/orders');
-      setOrders(result);
-      setResponseText(JSON.stringify(result, null, 2));
-    } catch (error) {
-      console.error('Siparişler yüklenirken hata:', error);
-      setOrdersError(`Yükleme sırasında hata oluştu: ${error instanceof Error ? error.message : String(error)}`);
-      setResponseText('Error loading orders');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const loadMachines = async () => {
     setLoading(true);
     setMachinesError('');
@@ -228,216 +175,172 @@ const ApiTestScreen: React.FC = () => {
     }
   };
 
-  // Add function to handle loading buttons in the UI
   const handleLoadData = (type: string) => {
-    switch(type) {
-      case 'orders':
-        loadOrders();
-        break;
-      case 'work-orders':
-        loadWorkOrders();
-        break;
+    switch (type) {
       case 'machines':
         loadMachines();
         break;
       default:
-        Alert.alert('Error', 'Unknown data type');
+        console.log('Unknown data type:', type);
     }
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
+        style={styles.keyboardView}
       >
-        <ScrollView style={styles.scrollView}>
-          <Text style={styles.title}>API Diagnostics</Text>
+        <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
+          <Text style={styles.title}>API Test Screen</Text>
           
-          {/* API URL Configuration */}
+          {/* API URL Input */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>API Server Configuration</Text>
             <Text style={styles.label}>API Base URL:</Text>
             <TextInput
               style={styles.input}
               value={apiUrl}
               onChangeText={setApiUrl}
               placeholder="Enter API base URL"
+              placeholderTextColor="#666"
             />
-            
-            <TouchableOpacity 
-              style={styles.button} 
-              onPress={testApiConnection}
-            >
+            <TouchableOpacity style={styles.button} onPress={testApiConnection}>
               <Text style={styles.buttonText}>Test Connection</Text>
             </TouchableOpacity>
-            
             {pingResult && (
-              <Text style={[
-                styles.resultText, 
-                pingResult.includes('failed') ? styles.errorText : styles.successText
-              ]}>
+              <Text style={[styles.result, pingResult.includes('successful') ? styles.success : styles.error]}>
                 {pingResult}
               </Text>
             )}
           </View>
-          
-          {/* Quick Data Loading Buttons */}
+
+          {/* Endpoint Selection */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Quick Data Load</Text>
-            <View style={styles.buttonRow}>
-              <TouchableOpacity 
-                style={styles.buttonSmall} 
-                onPress={() => handleLoadData('orders')}
-              >
-                <Text style={styles.buttonText}>Load Orders</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={styles.buttonSmall} 
-                onPress={() => handleLoadData('work-orders')}
-              >
-                <Text style={styles.buttonText}>Load Work Orders</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={styles.buttonSmall} 
-                onPress={() => handleLoadData('machines')}
-              >
-                <Text style={styles.buttonText}>Load Machines</Text>
-              </TouchableOpacity>
-            </View>
-            
-            {(workOrdersError || ordersError || machinesError) && (
-              <View style={styles.errorContainer}>
-                {workOrdersError && <Text style={styles.errorText}>{workOrdersError}</Text>}
-                {ordersError && <Text style={styles.errorText}>{ordersError}</Text>}
-                {machinesError && <Text style={styles.errorText}>{machinesError}</Text>}
-              </View>
-            )}
-          </View>
-          
-          {/* Standard API Tests */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>API Request</Text>
-            
             <Text style={styles.label}>Endpoint:</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={endpoint}
-                onValueChange={(itemValue) => {
-                  setEndpoint(itemValue);
-                  if (itemValue === '/custom') {
-                    setCustomEndpoint('');
-                  }
-                }}
+                onValueChange={setEndpoint}
                 style={styles.picker}
+                dropdownIconColor="#fff"
               >
                 {endpoints.map((ep) => (
-                  <Picker.Item key={ep} label={ep} value={ep} />
+                  <Picker.Item key={ep} label={ep} value={ep} color="#fff" />
                 ))}
               </Picker>
             </View>
             
             {endpoint === '/custom' && (
-              <>
-                <Text style={styles.label}>Custom Endpoint:</Text>
-                <TextInput
-                  style={styles.input}
-                  value={customEndpoint}
-                  onChangeText={setCustomEndpoint}
-                  placeholder="/your-endpoint"
-                />
-              </>
+              <TextInput
+                style={styles.input}
+                value={customEndpoint}
+                onChangeText={setCustomEndpoint}
+                placeholder="Enter custom endpoint (e.g., /data)"
+                placeholderTextColor="#666"
+              />
             )}
-            
-            <Text style={styles.label}>Method:</Text>
+          </View>
+
+          {/* HTTP Method Selection */}
+          <View style={styles.section}>
+            <Text style={styles.label}>HTTP Method:</Text>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={method}
-                onValueChange={(itemValue) => setMethod(itemValue)}
+                onValueChange={setMethod}
                 style={styles.picker}
+                dropdownIconColor="#fff"
               >
-                <Picker.Item label="GET" value="GET" />
-                <Picker.Item label="POST" value="POST" />
-                <Picker.Item label="PUT" value="PUT" />
-                <Picker.Item label="DELETE" value="DELETE" />
+                <Picker.Item label="GET" value="GET" color="#fff" />
+                <Picker.Item label="POST" value="POST" color="#fff" />
+                <Picker.Item label="PUT" value="PUT" color="#fff" />
+                <Picker.Item label="DELETE" value="DELETE" color="#fff" />
               </Picker>
             </View>
-            
-            {(method === 'POST' || method === 'PUT') && (
-              <>
-                <Text style={styles.label}>Request Body (JSON):</Text>
-                <TextInput
-                  style={[styles.input, styles.textArea]}
-                  value={requestBody}
-                  onChangeText={setRequestBody}
-                  placeholder='{"key": "value"}'
-                  multiline
-                  numberOfLines={4}
-                />
-              </>
-            )}
-            
+          </View>
+
+          {/* Request Body (for POST/PUT) */}
+          {(method === 'POST' || method === 'PUT') && (
+            <View style={styles.section}>
+              <Text style={styles.label}>Request Body (JSON):</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={requestBody}
+                onChangeText={setRequestBody}
+                placeholder='{"key": "value"}'
+                placeholderTextColor="#666"
+                multiline
+                numberOfLines={4}
+              />
+            </View>
+          )}
+
+          {/* Action Buttons */}
+          <View style={styles.section}>
             <TouchableOpacity 
-              style={styles.button} 
+              style={[styles.button, loading && styles.buttonDisabled]} 
               onPress={makeApiRequest}
               disabled={loading}
             >
-              <Text style={styles.buttonText}>
-                {loading ? 'Sending...' : 'Send Request'}
-              </Text>
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>Make Request</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => handleLoadData('machines')}
+            >
+              <Text style={styles.buttonText}>Load Machines</Text>
             </TouchableOpacity>
           </View>
-          
-          {/* Response Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Response</Text>
-            
-            {loading ? (
-              <ActivityIndicator size="large" color="#007bff" />
-            ) : (
-              <>
-                {error && (
-                  <Text style={styles.errorText}>{error}</Text>
-                )}
-                
-                {statusCode !== null && (
-                  <Text style={styles.responseInfo}>
-                    Status: <Text style={statusCode >= 200 && statusCode < 300 ? styles.successText : styles.errorText}>
-                      {statusCode}
-                    </Text>
+
+          {/* Error Display */}
+          {(error || machinesError) && (
+            <View style={styles.section}>
+              {error && <Text style={styles.errorText}>{error}</Text>}
+              {machinesError && <Text style={styles.errorText}>{machinesError}</Text>}
+            </View>
+          )}
+
+          {/* Response Info */}
+          {(statusCode !== null || responseTime !== null) && (
+            <View style={styles.section}>
+              <Text style={styles.label}>Response Info:</Text>
+              {statusCode !== null && (
+                <Text style={styles.infoText}>Status Code: {statusCode}</Text>
+              )}
+              {responseTime !== null && (
+                <Text style={styles.infoText}>Response Time: {responseTime}ms</Text>
+              )}
+            </View>
+          )}
+
+          {/* Response Display */}
+          {responseText && (
+            <View style={styles.section}>
+              <Text style={styles.label}>Response:</Text>
+              <ScrollView style={styles.responseContainer} nestedScrollEnabled>
+                <Text style={styles.responseText}>{responseText}</Text>
+              </ScrollView>
+            </View>
+          )}
+
+          {/* Data Display */}
+          {machines.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.label}>Machines ({machines.length}):</Text>
+              {machines.map((machine, index) => (
+                <View key={index} style={styles.dataItem}>
+                  <Text style={styles.dataText}>
+                    ID: {machine.id} - Name: {machine.name} - Status: {machine.status}
                   </Text>
-                )}
-                
-                {responseTime !== null && (
-                  <Text style={styles.responseInfo}>
-                    Response Time: {responseTime}ms
-                  </Text>
-                )}
-                
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Raw Response:</Text>
-                  <ScrollView style={styles.responseContainer}>
-                    <Text style={styles.responseText}>
-                      {responseText || 'No response data'}
-                    </Text>
-                  </ScrollView>
                 </View>
-                
-                {responseData && (
-                  <>
-                    <Text style={styles.label}>Parsed JSON Response:</Text>
-                    <ScrollView style={styles.responseContainer}>
-                      <Text>
-                        {JSON.stringify(responseData, null, 2)}
-                      </Text>
-                    </ScrollView>
-                  </>
-                )}
-              </>
-            )}
-          </View>
+              ))}
+            </View>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -445,11 +348,11 @@ const ApiTestScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
   container: {
+    flex: 1,
+    backgroundColor: '#121212',
+  },
+  keyboardView: {
     flex: 1,
   },
   scrollView: {
@@ -459,110 +362,106 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    color: '#fff',
     textAlign: 'center',
+    marginBottom: 20,
   },
   section: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   label: {
     fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
     marginBottom: 8,
-    fontWeight: '500',
   },
   input: {
+    backgroundColor: '#1F2937',
+    borderColor: '#374151',
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 4,
-    padding: 10,
-    marginBottom: 16,
-    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 12,
+    color: '#fff',
+    fontSize: 16,
+    marginBottom: 8,
   },
   textArea: {
     height: 100,
     textAlignVertical: 'top',
   },
   pickerContainer: {
+    backgroundColor: '#1F2937',
+    borderColor: '#374151',
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 4,
-    marginBottom: 16,
-    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginBottom: 8,
   },
   picker: {
-    height: 50,
+    color: '#fff',
+    backgroundColor: '#1F2937',
   },
   button: {
-    backgroundColor: '#007bff',
-    borderRadius: 4,
+    backgroundColor: '#3B82F6',
     padding: 12,
+    borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
   },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  buttonSmall: {
-    backgroundColor: '#007bff',
-    borderRadius: 4,
-    padding: 10,
-    alignItems: 'center',
-    flex: 1,
-    marginHorizontal: 4,
+  buttonDisabled: {
+    backgroundColor: '#6B7280',
   },
   buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: '#fff',
     fontSize: 16,
+    fontWeight: '600',
   },
-  responseContainer: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 4,
-    padding: 8,
-    backgroundColor: '#f9f9f9',
-    maxHeight: 200,
-  },
-  resultText: {
-    marginVertical: 8,
+  result: {
     fontSize: 14,
+    marginTop: 8,
+    padding: 8,
+    borderRadius: 4,
+  },
+  success: {
+    color: '#10B981',
+    backgroundColor: '#064E3B',
+  },
+  error: {
+    color: '#EF4444',
+    backgroundColor: '#7F1D1D',
   },
   errorText: {
-    color: '#d9534f',
-  },
-  errorContainer: {
-    marginVertical: 8,
-    padding: 8,
-    backgroundColor: '#fff9f9',
-    borderRadius: 4,
-    borderColor: '#ffdddd',
-    borderWidth: 1,
-  },
-  successText: {
-    color: '#5cb85c',
-  },
-  responseInfo: {
+    color: '#EF4444',
     fontSize: 14,
     marginBottom: 8,
   },
+  infoText: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  responseContainer: {
+    backgroundColor: '#1F2937',
+    borderColor: '#374151',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    maxHeight: 200,
+  },
   responseText: {
+    color: '#D1D5DB',
+    fontSize: 12,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+  },
+  dataItem: {
+    backgroundColor: '#1F2937',
+    padding: 8,
+    borderRadius: 4,
+    marginBottom: 4,
+  },
+  dataText: {
+    color: '#D1D5DB',
     fontSize: 14,
   },
 });
 
-export default ApiTestScreen; 
+export default ApiTestScreen;

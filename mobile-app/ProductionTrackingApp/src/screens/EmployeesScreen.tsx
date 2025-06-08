@@ -17,18 +17,23 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { hasModuleAccess } from '../lib/authUtils';
 import { employeesApi } from '../api/apiService';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { MainStackParamList } from '../navigation/AppNavigator';
-import { Employee } from '../types';
-import { getEmployees, deleteEmployee } from '../services/apiService';
-import { StatusBadge } from '../components/StatusBadge';
-import { Ionicons } from '@expo/vector-icons';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { MainStackParamList } from '../navigation/types';
 
-type Props = {
-  navigation: StackNavigationProp<MainStackParamList, 'Employees'>;
-};
+// Employee type definition
+interface Employee {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  position?: string;
+  department?: string;
+  hire_date?: string;
+  is_active: boolean;
+}
 
-const EmployeesScreen: React.FC<Props> = ({ navigation }) => {
+const EmployeesScreen = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList>>();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -149,11 +154,7 @@ const EmployeesScreen: React.FC<Props> = ({ navigation }) => {
 
   // Add new employee
   const handleAddEmployee = () => {
-    navigation.navigate('AddEditEmployee', {
-      onEmployeeAdded: () => {
-        loadEmployees();
-      }
-    });
+    navigation.navigate('AddEditEmployee', {});
   };
 
   // View employee details
@@ -286,7 +287,7 @@ const EmployeesScreen: React.FC<Props> = ({ navigation }) => {
           style={styles.addButton}
           onPress={handleAddEmployee}
         >
-          <Ionicons name="add" size={24} color="white" />
+          <Icon name="add" size={24} color="white" />
         </TouchableOpacity>
       </View>
       

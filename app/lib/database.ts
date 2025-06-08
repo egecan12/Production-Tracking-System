@@ -1,54 +1,5 @@
 import { supabase } from './supabase'
-import type { Employee, Machine, Order, ProductionLog, Customer, WorkOrder, Spool, ProductionSpecification } from '../types'
-import workOrderService from './workOrderService'
-
-// Export WorkOrderService methods
-export const {
-  calculateProductionEfficiency,
-  validateSpoolSpecifications,
-  estimateProductionTime,
-  createWorkOrder,
-  getWorkOrders,
-  getWorkOrder,
-  updateWorkOrderStatus
-} = workOrderService;
-
-// Additional database functions for WorkOrder, Spool, and ProductionSpecification
-
-// Get Work Orders directly from database
-export async function fetchWorkOrders() {
-  const { data, error } = await supabase
-    .from('work_orders')
-    .select('*')
-    .order('created_at', { ascending: false })
-  
-  if (error) throw error
-  return data as WorkOrder[]
-}
-
-// Get Spools by Work Order ID
-export async function fetchSpoolsByWorkOrderId(workOrderId: string) {
-  const { data, error } = await supabase
-    .from('spools')
-    .select('*')
-    .eq('workOrderId', workOrderId)
-    .order('spoolNumber', { ascending: true })
-  
-  if (error) throw error
-  return data as Spool[]
-}
-
-// Get Production Specification by Work Order ID
-export async function fetchProductionSpecification(workOrderId: string) {
-  const { data, error } = await supabase
-    .from('production_specifications')
-    .select('*')
-    .eq('workOrderId', workOrderId)
-    .single()
-  
-  if (error) throw error
-  return data as ProductionSpecification
-}
+import type { Employee, Machine, ProductionLog, Customer } from '../types'
 
 // Workers
 export async function getEmployees() {
@@ -113,29 +64,7 @@ export async function addCustomer(customer: Omit<Customer, 'id' | 'created_at' |
   return data[0] as Customer
 }
 
-// Orders
-export async function getOrders() {
-  const { data, error } = await supabase
-    .from('orders')
-    .select(`
-      *,
-      customer:customer_id (name)
-    `)
-    .order('created_at', { ascending: false })
-  
-  if (error) throw error
-  return data as (Order & { customer: { name: string } })[]
-}
 
-export async function addOrder(order: Omit<Order, 'id' | 'created_at' | 'updated_at'>) {
-  const { data, error } = await supabase
-    .from('orders')
-    .insert([order])
-    .select()
-  
-  if (error) throw error
-  return data[0] as Order
-}
 
 // Production Logs
 export async function getProductionLogs() {
@@ -144,8 +73,7 @@ export async function getProductionLogs() {
     .select(`
       *,
       employees (name),
-      machines (name),
-      orders (customer_name)
+      machines (name)
     `)
     .order('created_at', { ascending: false })
   

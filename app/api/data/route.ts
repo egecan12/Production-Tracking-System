@@ -7,8 +7,6 @@ const ALLOWED_TABLES = [
   'employees',
   'customers',
   'machines',
-  'orders',
-  'work_orders',
   'production_logs',
   'production_specifications',
   'work_sessions'  // Work sessions table added
@@ -19,8 +17,6 @@ const TABLE_PERMISSIONS = {
   employees: ['read', 'create', 'update', 'delete'],
   customers: ['read', 'create', 'update', 'delete'],
   machines: ['read', 'create', 'update', 'delete'],
-  orders: ['read', 'create', 'update', 'delete'],
-  work_orders: ['read', 'create', 'update', 'delete'],
   production_logs: ['read', 'create', 'update', 'delete'],
   production_specifications: ['read', 'create', 'update', 'delete'],
   work_sessions: ['read', 'create', 'update', 'delete']  // Permissions for work sessions

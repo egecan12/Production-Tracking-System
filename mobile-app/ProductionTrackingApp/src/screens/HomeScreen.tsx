@@ -26,20 +26,6 @@ type ModuleItem = {
 // Define modules with English text
 const modules: ModuleItem[] = [
   {
-    id: 'work-orders',
-    route: 'WorkOrders',
-    title: 'Work Order Management',
-    description: 'Create work orders, track them and monitor production metrics',
-    color: '#A78BFA', // purple-400
-  },
-  {
-    id: 'orders',
-    route: 'Orders',
-    title: 'Order Management',
-    description: 'Create new orders and track existing ones',
-    color: '#818CF8', // indigo-400
-  },
-  {
     id: 'machines',
     route: 'Machines',
     title: 'Machine Management',
