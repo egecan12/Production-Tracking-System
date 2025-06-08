@@ -1,0 +1,9 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <rect width="128" height="128" fill="#3B82F6" rx="12.8"/>
+  <rect x="19.2" y="19.2" width="89.6" height="89.6" fill="white" rx="6.4"/>
+  <rect x="32" y="32" width="64" height="12.8" fill="#3B82F6" rx="2.56"/>
+  <rect x="32" y="51.2" width="38.4" height="10.24" fill="#3B82F6" rx="2.56"/>
+  <rect x="32" y="67.84" width="51.2" height="10.24" fill="#3B82F6" rx="2.56"/>
+  <rect x="32" y="84.48" width="32" height="10.24" fill="#3B82F6" rx="2.56"/>
+  <text x="64" y="115.2" text-anchor="middle" font-family="Arial, sans-serif" font-size="10.24" font-weight="bold" fill="#3B82F6">PT</text>
+</svg>
