@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen.svg)](https://production-tracking-system-b4f4jp3eq.vercel.app/auth/system-login)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen.svg)](https://production-tracking-system-one.vercel.app/auth/system-login)
 [![Next.js](https://img.shields.io/badge/Next.js-Framework-blue.svg)](https://nextjs.org/)
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 
