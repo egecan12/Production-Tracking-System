@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Base URL for the Next.js API - loaded from environment variables
 // If not set in .env, fallback to localhost (you should update this with your computer's IP)
-let API_BASE_URL_CONFIG = 'http://192.168.178.75:3000';
+let API_BASE_URL_CONFIG = 'http://192.168.0.26:3000';
 
 // Try to load from @env, fallback to hardcoded if not available
 try {

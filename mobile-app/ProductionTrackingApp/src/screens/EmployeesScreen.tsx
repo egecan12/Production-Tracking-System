@@ -54,13 +54,52 @@ const EmployeesScreen = () => {
     checkPermissions();
   }, []);
 
+  // Performance measurement for thesis
+  const [performanceMetrics, setPerformanceMetrics] = useState({
+    pageLoadStart: 0,
+    dataFetchStart: 0,
+    dataFetchEnd: 0,
+    renderComplete: 0,
+    totalLoadTime: 0
+  });
+
+  // Mark render complete after employees are loaded
+  useEffect(() => {
+    if (!loading && employees.length > 0) {
+      const renderComplete = Date.now();
+      setPerformanceMetrics(prev => {
+        const totalLoadTime = renderComplete - prev.pageLoadStart;
+        const updated = { ...prev, renderComplete, totalLoadTime };
+        
+        // Log performance metrics for thesis research
+        console.log('📊 EMPLOYEES PAGE PERFORMANCE METRICS (MOBILE):', {
+          pageLoadStart: `${prev.pageLoadStart}ms`,
+          dataFetchTime: `${prev.dataFetchEnd - prev.dataFetchStart}ms`,
+          totalLoadTime: `${totalLoadTime}ms`,
+          employeesCount: employees.length,
+          timestamp: new Date().toISOString()
+        });
+        
+        return updated;
+      });
+    }
+  }, [loading, employees]);
+
   // Load employees
   const loadEmployees = async () => {
     try {
       setLoading(true);
       
+      // Mark data fetch start for thesis research
+      const dataFetchStart = Date.now();
+      setPerformanceMetrics(prev => ({ ...prev, dataFetchStart }));
+      
       const response = await employeesApi.getAll();
       console.log('API Response:', response); // Debug log
+      
+      // Mark data fetch end for thesis research
+      const dataFetchEnd = Date.now();
+      setPerformanceMetrics(prev => ({ ...prev, dataFetchEnd }));
       
       if (response && response.success && response.data) {
         const data = response.data.map((employee: any) => {
@@ -87,6 +126,10 @@ const EmployeesScreen = () => {
 
   // Initial load
   useEffect(() => {
+    // Mark page load start for thesis research
+    const pageLoadStart = Date.now();
+    setPerformanceMetrics(prev => ({ ...prev, pageLoadStart }));
+    
     loadEmployees();
   }, []);
 

@@ -33,9 +33,44 @@ export default function EmployeesPage() {
   });
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // Performance measurement for thesis
+  const [performanceMetrics, setPerformanceMetrics] = useState({
+    pageLoadStart: 0,
+    dataFetchStart: 0,
+    dataFetchEnd: 0,
+    renderComplete: 0,
+    totalLoadTime: 0
+  });
+
   useEffect(() => {
+    // Mark page load start for thesis research
+    const pageLoadStart = performance.now();
+    setPerformanceMetrics(prev => ({ ...prev, pageLoadStart }));
+    
     fetchEmployees();
   }, []);
+
+  // Mark render complete after employees are loaded
+  useEffect(() => {
+    if (!loading && employees.length > 0) {
+      const renderComplete = performance.now();
+      setPerformanceMetrics(prev => {
+        const totalLoadTime = renderComplete - prev.pageLoadStart;
+        const updated = { ...prev, renderComplete, totalLoadTime };
+        
+        // Log performance metrics for thesis research
+        console.log('📊 EMPLOYEES PAGE PERFORMANCE METRICS (WEB):', {
+          pageLoadStart: `${prev.pageLoadStart.toFixed(2)}ms`,
+          dataFetchTime: `${(prev.dataFetchEnd - prev.dataFetchStart).toFixed(2)}ms`,
+          totalLoadTime: `${totalLoadTime.toFixed(2)}ms`,
+          employeesCount: employees.length,
+          timestamp: new Date().toISOString()
+        });
+        
+        return updated;
+      });
+    }
+  }, [loading, employees]);
 
   // Filter function
   useEffect(() => {
@@ -62,9 +97,18 @@ export default function EmployeesPage() {
 
   async function fetchEmployees() {
     try {
+      // Mark data fetch start for thesis research
+      const dataFetchStart = performance.now();
+      setPerformanceMetrics(prev => ({ ...prev, dataFetchStart }));
+      
       console.log("Loading employees...");
       const data = await getData<Employee>("employees", { is_active: true });
       console.log("Employee data:", data);
+      
+      // Mark data fetch end for thesis research
+      const dataFetchEnd = performance.now();
+      setPerformanceMetrics(prev => ({ ...prev, dataFetchEnd }));
+      
       setEmployees(data || []);
       setFilteredEmployees(data || []);
     } catch (error: any) {
