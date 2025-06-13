@@ -11,6 +11,19 @@ A comprehensive production management system for manufacturing companies, focuse
 <img src="https://github.com/user-attachments/assets/0ed36683-b604-4325-9340-5587d8c88c57" width="25%">
 
 </div>
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/cee8adea-48ea-4be2-8702-d6bc6c4a2b6d" width="100">
+  <img src="https://github.com/user-attachments/assets/c306847d-808d-4534-ae0f-24a58087bac1" width="100">
+  <img src="https://github.com/user-attachments/assets/ae6fb431-4bf7-4748-ae84-d04d26658438" width="100">
+  <img src="https://github.com/user-attachments/assets/b6b3e31b-e88e-4153-a888-2af123bb451e" width="100">
+  <img src="https://github.com/user-attachments/assets/259fea0e-45e5-43e1-8a14-9a82fc050280" width="100">
+  <img src="https://github.com/user-attachments/assets/00a7aa89-47d1-4068-b7a2-b35f492c1c3d" width="100">
+  <img src="https://github.com/user-attachments/assets/72228700-0d8f-46ca-b756-624d39082a4e" width="100">
+  <img src="https://github.com/user-attachments/assets/db5dc336-fae5-4611-93f8-a7feb774251e" width="100">
+</div>
+
+
+
 
 ## ✨ Key Features
 
